@@ -1,0 +1,122 @@
+﻿@import "_bootstrap.scss";
+@import "_variables.scss";
+
+$sidebar-width: 250px;
+$content-min-height: 400px;
+
+a, button {
+    .fa {
+        margin-right: 0.5em;
+    }
+}
+
+#footer {
+    margin-top: 20px;
+    background: $navbar-default-bg;
+    border-top: 1px solid $navbar-default-border;
+    overflow: hidden;
+    .container-fluid {
+        margin: 20px 0;
+    }
+}
+
+#content-wrapper {
+    height: 100%;
+    position: relative;
+    #sidebar {
+        float: left;
+        width: $sidebar-width;
+        padding-right: 20px;
+        margin-top: 20px;
+    }
+    #content {
+        margin-left: $sidebar-width;
+        overflow: hidden;
+        min-height: $content-min-height;
+    }
+}
+.action-message {
+    padding: 0 0 15px 0;
+}
+.action-alert {
+    padding: 0 0 15px 0;
+    font-weight: bold;
+    color: $alert-danger-text;
+    text-decoration: underline;
+}
+
+.table {
+    position: relative;
+    & > thead, & > tbody, & > tfoot {
+        & > tr {
+            & > th, & > td {
+                vertical-align: middle;
+            }
+        }
+    }
+    .shrink {
+        white-space: nowrap;
+        width: 1px;
+        text-align: center;
+    }
+    .actions {
+        min-width: 87px;
+    }
+    input {
+        height: 30px;
+    }
+    input[type="checkbox"] {
+        width: 1.3em;
+        height: 1.3em;
+        margin-top: 6px;
+    }
+    .actions {
+        .btn + .btn {
+            margin-left: 5px;
+        }
+        .btn-sm {
+            padding: 1px 6px;
+        }
+        .fa {
+            margin-right: 0!important;
+            &.fa-check {
+                color: $brand-success;
+            }
+            &.fa-times {
+                color: $brand-danger;
+            }
+        }
+    }
+
+}
+
+.clickable {
+    cursor: pointer;
+}
+#pagesizeselector {
+    a + a {
+        margin-left: 0.5em;
+    }
+    a.active {
+        font-weight: bold;
+    }
+}
+#paginator {
+    text-align: center;
+}
+#loading-spinner {
+    margin-top: 50px;
+}
+#updating-spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255, 0.6);
+    #spinner-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+    }
+}

@@ -1,0 +1,39 @@
+{{define "testimonials"}}
+  {{if .Testimonials}}
+  <section id="testimonials">
+    <h2 class="text-center">Отзывы пациентов</h2>
+    <p>Эффективность и качество применяемых на практике кинезиологических методик подтверждено многочисленными положительными отзывами наших пациентов.</p>
+
+    {{$len := len .Testimonials}}
+    <div class="carousel slide" id="testimonials-slide" data-interval="false">
+      <div class="carousel-inner">
+        {{range $i, $v := .Testimonials}}
+          <div class="item {{if eq $i 0}}active{{end}}">
+            <div class="col-xs-12 {{if gt $len 1}}col-sm-6{{end}}">
+              <div class="thumbnail">
+                {{if .Image}}
+                  <a href="{{.URL}}">
+                    <img class="img-responsive" src="{{.Image}}" />
+                  </a>
+                {{else}}
+                  {{if .Video}}
+                    <iframe src="{{.Video}}" frameborder="0" allowfullscreen></iframe>
+                  {{end}}
+                {{end}}
+                <a href="{{.URL}}">
+                  <p class="strong">{{.AuthorName}}</p>
+                  <p class="excerpt">{{.Content}}</p>
+                </a>
+              </div>
+            </div>
+          </div>
+        {{end}}
+      </div>
+      {{if gt $len 1}}
+        <a class="left carousel-control" href="#testimonials-slide" data-slide="prev"><i class="glyphicon glyphicon-chevron-left"></i></a>
+        <a class="right carousel-control" href="#testimonials-slide" data-slide="next"><i class="glyphicon glyphicon-chevron-right"></i></a>
+      {{end}}
+    </div>
+  </section>
+  {{end}}
+{{end}}
