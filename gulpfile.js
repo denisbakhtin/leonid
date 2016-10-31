@@ -98,7 +98,8 @@ gulp.task('build-js', function () {
             .pipe(source('build.js'))
             .pipe(buffer())
             .pipe(concat('app.js'))
-            .pipe(gulp.dest(paths.jsDest));
+            .pipe(gulp.dest(paths.jsDest))
+			.pipe(reload());
 });
 
 gulp.task('build-css', function () {
@@ -106,7 +107,8 @@ gulp.task('build-css', function () {
             .pipe(sass().on('error', sass.logError))
             .pipe(autoprefixer())
             .pipe(concat('app.css'))
-            .pipe(gulp.dest(paths.cssDest));
+            .pipe(gulp.dest(paths.cssDest))
+			.pipe(reload());
 });
 
 gulp.task('assets:build', ['build-css', 'build-js']);
@@ -144,24 +146,21 @@ gulp.task('server:spawn', function() {
 
   /* Spawn application server */
   server = child.spawn('leonid');
-
-  /* Trigger reload upon server start */
-  server.stdout.once('data', function() {
-    reload.reload('/');
-  });
-
-  /* Pretty print server log output */
-  server.stdout.on('data', function(data) {
-    var lines = data.toString().split('\n')
+  if (server.stderr.length) {
+    var lines = build.stderr.toString()
+      .split('\n').filter(function(line) {
+        return line.length
+      });
     for (var l in lines)
-      if (lines[l].length)
-        util.log(lines[l]);
-  });
-
-  /* Print errors to stdout */
-  server.stderr.on('data', function(data) {
-    process.stdout.write(data.toString());
-  });
+      util.log(util.colors.red(
+        'Error (go install): ' + lines[l]
+      ));
+    notifier.notify({
+      title: 'Error (go server spawn)',
+      message: lines
+    });
+  }
+  reload.reload('/');
 });
 
 gulp.task('server:watch', function() {
