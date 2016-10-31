@@ -146,21 +146,28 @@ gulp.task('server:spawn', function() {
 
   /* Spawn application server */
   server = child.spawn('leonid');
-  if (server.stderr.length) {
-    var lines = build.stderr.toString()
-      .split('\n').filter(function(line) {
-        return line.length
-      });
+  reload.reload('/');
+
+	server.stdout.on('data', function(data) {
+    var lines = data.toString().split('\n')
     for (var l in lines)
-      util.log(util.colors.red(
-        'Error (go install): ' + lines[l]
-      ));
+      if (lines[l].length)
+        util.log(lines[l]);
     notifier.notify({
-      title: 'Error (go server spawn)',
+      title: 'Log (go spawn)',
       message: lines
     });
-  }
-  reload.reload('/');
+  });
+
+  /* Print errors to stdout */
+  server.stderr.on('data', function(data) {
+    process.stdout.write(data.toString());
+    var lines = data.toString().split('\n')
+    notifier.notify({
+      title: 'Error (go spawn)',
+      message: lines
+    });
+  });
 });
 
 gulp.task('server:watch', function() {

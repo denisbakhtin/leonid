@@ -1,42 +1,37 @@
 package system
 
-//go:generate rice embed-go
-
 import (
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"path"
-	"strings"
 	"time"
 
-	"github.com/GeertJohan/go.rice"
 	"github.com/denisbakhtin/leonid/models"
 	"github.com/jmoiron/sqlx"
 	"github.com/rubenv/sql-migrate"
 )
 
-//RunMigrations applies database migrations, where box - rice box for "migrations" dir, command:
+//RunMigrations applies database migrations for "migrations" dir, command:
 //new - creates new blank migration in "migrations" directory. Edit that file as needed.
 //"up", "down"- apply all pending migrations, or undo the last one
 //"redo" - rollback last migration, then reapply it
 //db - database handler
 func RunMigrations(command *string) {
-	box := rice.MustFindBox("../migrations")
 	switch *command {
 	case "new":
-		migrateNew(box)
+		migrateNew()
 		os.Exit(0)
 	case "up":
-		migrateUp(models.GetDB(), box, 0)
+		migrateUp(models.GetDB(), 0)
 		os.Exit(0)
 	case "down":
-		migrateDown(models.GetDB(), box, 1)
+		migrateDown(models.GetDB(), 1)
 		os.Exit(0)
 	case "redo":
-		migrateDown(models.GetDB(), box, 1)
-		migrateUp(models.GetDB(), box, 1)
+		migrateDown(models.GetDB(), 1)
+		migrateUp(models.GetDB(), 1)
 		os.Exit(0)
 	case "skip":
 	default:
@@ -45,7 +40,7 @@ func RunMigrations(command *string) {
 }
 
 //migrateNew creates new blank migration
-func migrateNew(box *rice.Box) {
+func migrateNew() {
 	if len(flag.Args()) == 0 {
 		log.Fatalf("ERROR: Migration's name not specified\n")
 		return
@@ -69,8 +64,8 @@ func migrateNew(box *rice.Box) {
 }
 
 //migrateUp applies {{max}} pending db migrations. If max == 0, it applies all
-func migrateUp(db *sqlx.DB, box *rice.Box, max int) {
-	migrations := getRiceMigrations(box)
+func migrateUp(db *sqlx.DB, max int) {
+	migrations := getMigrations()
 	n, err := migrate.ExecMax(db.DB, "postgres", migrations, migrate.Up, max)
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
@@ -80,8 +75,8 @@ func migrateUp(db *sqlx.DB, box *rice.Box, max int) {
 }
 
 //migrateDown rolls back {{max}} db migrations. If max == 0, it rolles back all of them
-func migrateDown(db *sqlx.DB, box *rice.Box, max int) {
-	migrations := getRiceMigrations(box)
+func migrateDown(db *sqlx.DB, max int) {
+	migrations := getMigrations()
 	n, err := migrate.ExecMax(db.DB, "postgres", migrations, migrate.Down, max)
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
@@ -90,28 +85,10 @@ func migrateDown(db *sqlx.DB, box *rice.Box, max int) {
 	}
 }
 
-//getRiceMigrations builds migration source from go.rice storage
-func getRiceMigrations(box *rice.Box) *migrate.MemoryMigrationSource {
-	source := &migrate.MemoryMigrationSource{}
-	fn := func(path string, f os.FileInfo, err error) error {
-		if !f.IsDir() && strings.HasSuffix(f.Name(), ".sql") {
-			migFile, err := box.Open(path)
-			if err != nil {
-				return err
-			}
-			mig, err := migrate.ParseMigration(path, migFile)
-			migFile.Close()
-			if err != nil {
-				return err
-			}
-			source.Migrations = append(source.Migrations, mig)
-		}
-		return nil
+//getMigrations builds migration source from migrations folder
+func getMigrations() *migrate.FileMigrationSource {
+	migrations := &migrate.FileMigrationSource{
+		Dir: "migrations",
 	}
-	err := box.Walk("", fn)
-	if err != nil {
-		log.Panic(err)
-		return nil
-	}
-	return source
+	return migrations
 }

@@ -1,9 +1,8 @@
 package system
 
-//go:generate rice embed-go
-
 import (
 	"encoding/json"
+	"io/ioutil"
 	"os"
 	"path"
 )
@@ -71,9 +70,13 @@ var (
 )
 
 //loadConfig unmarshals config for current application mode
-func loadConfig(data []byte) {
+func loadConfig() {
+	data, err := ioutil.ReadFile("config/config.json")
+	if err != nil {
+		panic(err)
+	}
 	configs := &Configs{}
-	err := json.Unmarshal(data, configs)
+	err = json.Unmarshal(data, configs)
 	if err != nil {
 		panic(err)
 	}
