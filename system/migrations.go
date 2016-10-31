@@ -89,7 +89,6 @@ func RunMigrations(command *string) {
 	switch *command {
 	case "up":
 		migrateUp(models.GetDB(), 0)
-		os.Exit(0)
 	case "down":
 		migrateDown(models.GetDB(), 1)
 		os.Exit(0)
