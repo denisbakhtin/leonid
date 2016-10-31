@@ -19,7 +19,7 @@ func init() {
 }
 
 func main() {
-	migrate := flag.String("migrate", "skip", "Run DB migrations: up, down, redo, new [MIGRATION_NAME] and then os.Exit(0)")
+	migrate := flag.String("migrate", "up", "Run DB migrations: up, down, redo, skip, and then os.Exit(0)")
 	mode := flag.String("mode", "debug", "Application mode: debug, release, test")
 	flag.Parse()
 

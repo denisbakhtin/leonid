@@ -1,28 +1,92 @@
 package system
 
 import (
-	"flag"
-	"fmt"
 	"log"
 	"os"
-	"path"
-	"time"
 
 	"github.com/denisbakhtin/leonid/models"
 	"github.com/jmoiron/sqlx"
 	"github.com/rubenv/sql-migrate"
 )
 
-//RunMigrations applies database migrations for "migrations" dir, command:
-//new - creates new blank migration in "migrations" directory. Edit that file as needed.
-//"up", "down"- apply all pending migrations, or undo the last one
-//"redo" - rollback last migration, then reapply it
-//db - database handler
+var migrations = migrate.MemoryMigrationSource{
+	[]*migrate.Migration{
+
+		&migrate.Migration{
+			Id: "create users table",
+			Up: []string{`
+				CREATE TABLE users(
+					id SERIAL PRIMARY KEY,
+					name TEXT NOT NULL,
+					email TEXT NOT NULL UNIQUE,
+					password TEXT NOT NULL,
+					timestamp TIMESTAMP
+				);
+			`},
+			Down: []string{"DROP TABLE users;"},
+		},
+
+		&migrate.Migration{
+			Id: "create pages table",
+			Up: []string{`
+				CREATE TABLE pages(
+					id SERIAL PRIMARY KEY,
+					name TEXT NOT NULL,
+					slug TEXT NOT NULL,
+					content TEXT NOT NULL,
+					published boolean NOT NULL DEFAULT true,
+					created_at TIMESTAMP,
+					updated_at TIMESTAMP
+				);
+			`},
+			Down: []string{"DROP TABLE pages;"},
+		},
+
+		&migrate.Migration{
+			Id: "create categories table",
+			Up: []string{`
+				CREATE TABLE categories(
+					id SERIAL PRIMARY KEY,
+					name TEXT NOT NULL,
+					slug TEXT NOT NULL,
+					content TEXT NOT NULL,
+					published boolean NOT NULL DEFAULT true,
+					created_at TIMESTAMP,
+					updated_at TIMESTAMP
+				);
+			`},
+			Down: []string{"DROP TABLE categories;"},
+		},
+
+		&migrate.Migration{
+			Id: "create products table",
+			Up: []string{`
+				CREATE TABLE products(
+					id SERIAL PRIMARY KEY,
+					name TEXT NOT NULL,
+					slug TEXT NOT NULL,
+					content TEXT NOT NULL,
+					image TEXT NOT NULL,
+					published boolean NOT NULL DEFAULT true,
+					category_id INTEGER REFERENCES categories(id) ON DELETE RESTRICT,
+					created_at TIMESTAMP,
+					updated_at TIMESTAMP
+				);
+			`},
+			Down: []string{"DROP TABLE products;"},
+		},
+	},
+}
+
+/*
+	RunMigrations applies database migrations for "migrations" dir, command:
+	"up" -  apply all pending migrations, or undo the last one
+	"down" - undo last migration
+	"redo" - redo last migration
+	db - database handler
+*/
 func RunMigrations(command *string) {
 	switch *command {
-	case "new":
-		migrateNew()
-		os.Exit(0)
 	case "up":
 		migrateUp(models.GetDB(), 0)
 		os.Exit(0)
@@ -35,60 +99,28 @@ func RunMigrations(command *string) {
 		os.Exit(0)
 	case "skip":
 	default:
-		log.Fatalf("Wrong migration flag %q, acceptable values: up, down\n", *command)
-	}
-}
-
-//migrateNew creates new blank migration
-func migrateNew() {
-	if len(flag.Args()) == 0 {
-		log.Fatalf("ERROR: Migration's name not specified\n")
-		return
-	}
-	name := path.Join("migrations", fmt.Sprintf("%d_%s.sql", time.Now().Unix(), flag.Arg(0)))
-	file, err := os.Create(name)
-	if err != nil {
-		log.Printf("ERROR: %s\n", err)
-		return
-	}
-	fmt.Fprintf(file, "-- +migrate Up\n")
-	fmt.Fprintf(file, "-- SQL in section 'Up' is executed when this migration is applied\n\n\n")
-	fmt.Fprintf(file, "-- +migrate Down\n")
-	fmt.Fprintf(file, "-- SQL in section 'Down' is executed when this migration is rolled back\n\n\n")
-	err = file.Close()
-	if err != nil {
-		log.Printf("ERROR: %s\n", err)
-	} else {
-		log.Printf("INFO: File %s has been successfully created\n", name)
+		log.Fatalf("Wrong --migrate param value: %s\n", *command)
 	}
 }
 
 //migrateUp applies {{max}} pending db migrations. If max == 0, it applies all
 func migrateUp(db *sqlx.DB, max int) {
-	migrations := getMigrations()
 	n, err := migrate.ExecMax(db.DB, "postgres", migrations, migrate.Up, max)
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
 	} else {
-		log.Printf("INFO: %d migration(s) applied\n", n)
+		if n > 0 {
+			log.Printf("INFO: %d migration(s) applied\n", n)
+		}
 	}
 }
 
 //migrateDown rolls back {{max}} db migrations. If max == 0, it rolles back all of them
 func migrateDown(db *sqlx.DB, max int) {
-	migrations := getMigrations()
 	n, err := migrate.ExecMax(db.DB, "postgres", migrations, migrate.Down, max)
 	if err != nil {
 		log.Printf("ERROR: %s\n", err)
 	} else {
 		log.Printf("INFO: %d migration(s) rolled back\n", n)
 	}
-}
-
-//getMigrations builds migration source from migrations folder
-func getMigrations() *migrate.FileMigrationSource {
-	migrations := &migrate.FileMigrationSource{
-		Dir: "migrations",
-	}
-	return migrations
 }
