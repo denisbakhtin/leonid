@@ -7,13 +7,15 @@ import (
 
 	"github.com/denisbakhtin/leonid/helpers"
 	"github.com/denisbakhtin/leonid/models"
+	"github.com/denisbakhtin/leonid/system"
 )
 
 //SignIn handles /signin route
 func SignIn(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 
 	if r.Method == "GET" {
 
@@ -29,17 +31,17 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 			Email:    r.PostFormValue("email"),
 			Password: r.PostFormValue("password"),
 		}
-		//check existence
-		userDB, _ := models.GetUserByEmail(user.Email)
-		if userDB.ID == 0 {
-			log.Printf("ERROR: Login failed, IP: %s, Email: %s\n", r.RemoteAddr, user.Email)
-			session.AddFlash("Email or password incorrect")
+		if err := user.HashPassword(); err != nil {
+			session.AddFlash("Error whilst signing user in.")
 			session.Save(r, w)
-			http.Redirect(w, r, "/signin", 303)
+			log.Printf("ERROR: can't sign user in: %v", err)
+			http.Redirect(w, r, "/signup", 303)
 			return
 		}
-		//create user
-		if err := userDB.ComparePassword(user.Password); err != nil {
+		//check existence
+		userDB := &models.User{}
+		db.Where(user).First(userDB)
+		if userDB.ID == 0 {
 			log.Printf("ERROR: Login failed, IP: %s, Email: %s\n", r.RemoteAddr, user.Email)
 			session.AddFlash("Email or password incorrect")
 			session.Save(r, w)
@@ -60,9 +62,10 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 //SignUp handles /signup route
 func SignUp(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 
 	if r.Method == "GET" {
 
@@ -79,7 +82,8 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			Password: r.PostFormValue("password"),
 		}
 		//check existence
-		userDB, _ := models.GetUserByEmail(user.Email)
+		userDB := &models.User{}
+		db.Where("lower(email) = lower(?)", user.Email).First(userDB)
 		if userDB.ID != 0 {
 			session.AddFlash("User exists")
 			session.Save(r, w)
@@ -95,7 +99,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/signup", 303)
 			return
 		}
-		if err := user.Insert(); err != nil {
+		if err := db.Create(user).Error; err != nil {
 			session.AddFlash("Error whilst registering user.")
 			session.Save(r, w)
 			log.Printf("ERROR: can't register user: %v", err)

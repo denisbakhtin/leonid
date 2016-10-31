@@ -3,8 +3,6 @@ package helpers
 import (
 	"fmt"
 	"time"
-
-	"github.com/denisbakhtin/leonid/models"
 )
 
 //MenuItem represents main menu item
@@ -45,12 +43,6 @@ func StringInSlice(value string, list []string) bool {
 	return false
 }
 
-//RecentArticles returns the list of recent articles
-func RecentArticles() []models.Article {
-	list, _ := models.GetRecentArticles()
-	return list
-}
-
 //OddEvenClass returns odd or even class depending on the index
 func OddEvenClass(index int) string {
 	//range indexes start with zero %)
@@ -62,9 +54,9 @@ func OddEvenClass(index int) string {
 
 //MainMenu returns the list of main menu items
 func MainMenu() []MenuItem {
-	about, _ := models.GetPage(4)
+	//about, _ := models.GetPage(4)
 	//cure, _ := models.GetPage(6)
-	contacts, _ := models.GetPage(7)
+	//contacts, _ := models.GetPage(7)
 	menu := []MenuItem{
 		MenuItem{
 			URL:   "/reviews",
@@ -73,37 +65,6 @@ func MainMenu() []MenuItem {
 		MenuItem{
 			URL:   "/articles",
 			Title: "articles",
-		},
-		MenuItem{
-			URL:      about.URL(),
-			Title:    "about_doctor",
-			CssClass: "small",
-		},
-		MenuItem{
-			URL:      contacts.URL(),
-			Title:    "contacts",
-			CssClass: "small",
-		},
-	}
-	return menu
-}
-
-//ScrollMenu returns the list of scroll menu items
-func ScrollMenu() []MenuItem {
-	about, _ := models.GetPage(4)
-	//cure, _ := models.GetPage(6)
-	menu := []MenuItem{
-		MenuItem{
-			URL:   about.URL(),
-			Title: "about_doctor",
-		},
-		MenuItem{
-			URL:   "#withoutpain",
-			Title: "treatment_stages",
-		},
-		MenuItem{
-			URL:   "/reviews",
-			Title: "reviews",
 		},
 	}
 	return menu
@@ -116,18 +77,6 @@ func Truncate(s string, n int) string {
 		return string(runes[:n]) + "..."
 	}
 	return s
-}
-
-func SellingPreface() string {
-	return "Выяснить причины возникновения жалоб и пройти кинезиологическое тестирование можно во время:"
-}
-
-//PromoTill returns promotion text
-func PromoTill() string {
-	now := time.Now()
-	wday := now.Weekday()
-	endofweek := now.Add(time.Duration(6-int(wday)) * 24 * time.Hour)
-	return fmt.Sprintf("до %d %s", endofweek.Day(), mon(endofweek.Month()))
 }
 
 //EqRI compares *int64 to int64

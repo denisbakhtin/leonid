@@ -8,18 +8,22 @@ import (
 
 	"github.com/denisbakhtin/leonid/helpers"
 	"github.com/denisbakhtin/leonid/models"
+	"github.com/denisbakhtin/leonid/system"
+	"github.com/jinzhu/gorm"
 )
 
 //PageShow handles /pages/:id route
 func PageShow(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
 		re := regexp.MustCompile("^[0-9]+")
 		id := re.FindString(r.URL.Path[len("/pages/"):])
-		page, err := models.GetPage(id)
-		if err != nil || !page.Published {
+		page := &models.Page{}
+
+		if err := db.First(page, id).Error; err != nil || !page.Published {
 			w.WriteHeader(404)
 			tmpl.Lookup("errors/404").Execute(w, nil)
 			return
@@ -44,19 +48,20 @@ func PageShow(w http.ResponseWriter, r *http.Request) {
 
 //PageIndex handles GET /admin/pages route
 func PageIndex(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
-		list, err := models.GetPages()
-		if err != nil {
+		var pages []models.Page
+		if err := db.Find(&pages).Error; err != nil {
 			w.WriteHeader(500)
 			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
 			return
 		}
 		data["Title"] = "Список страниц"
 		data["Active"] = "pages"
-		data["List"] = list
+		data["List"] = pages
 		tmpl.Lookup("pages/index").Execute(w, data)
 
 	} else {
@@ -69,9 +74,10 @@ func PageIndex(w http.ResponseWriter, r *http.Request) {
 
 //PageCreate handles /admin/new_page route
 func PageCreate(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
 		data["Title"] = "Новая страница"
@@ -89,7 +95,7 @@ func PageCreate(w http.ResponseWriter, r *http.Request) {
 			Published: helpers.Atob(r.PostFormValue("published")),
 		}
 
-		if err := page.Insert(); err != nil {
+		if err := db.Create(page).Error; err != nil {
 			session.AddFlash(err.Error())
 			session.Save(r, w)
 			http.Redirect(w, r, "/admin/new_page", 303)
@@ -107,14 +113,15 @@ func PageCreate(w http.ResponseWriter, r *http.Request) {
 
 //PageUpdate handles /admin/edit_page/:id route
 func PageUpdate(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
 		id := r.URL.Path[len("/admin/edit_page/"):]
-		page, err := models.GetPage(id)
-		if err != nil {
+		page := &models.Page{}
+		if err := db.Find(page, id).Error; err != nil {
 			w.WriteHeader(400)
 			tmpl.Lookup("errors/400").Execute(w, helpers.ErrorData(err))
 			return
@@ -130,14 +137,14 @@ func PageUpdate(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "POST" {
 
 		page := &models.Page{
-			ID:        helpers.Atoi64(r.PostFormValue("id")),
+			Model:     gorm.Model{ID: helpers.Atouint(r.PostFormValue("id"))},
 			Name:      r.PostFormValue("name"),
 			Slug:      r.PostFormValue("slug"),
 			Content:   r.PostFormValue("content"),
 			Published: helpers.Atob(r.PostFormValue("published")),
 		}
 
-		if err := page.Update(); err != nil {
+		if err := db.Save(page).Error; err != nil {
 			session.AddFlash(err.Error())
 			session.Save(r, w)
 			http.Redirect(w, r, r.RequestURI, 303)
@@ -155,18 +162,21 @@ func PageUpdate(w http.ResponseWriter, r *http.Request) {
 
 //PageDelete handles /admin/delete_page route
 func PageDelete(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
+	db := models.GetDB()
 
 	if r.Method == "POST" {
 
-		page, err := models.GetPage(r.PostFormValue("id"))
-		if err != nil {
+		page := &models.Page{}
+		id := r.PostFormValue("id")
+		if err := db.First(page, id).Error; err != nil || page.ID == 0 {
+			err := fmt.Errorf("Страница с номером: %v не найдена.", id)
 			log.Printf("ERROR: %s\n", err)
 			w.WriteHeader(404)
 			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
 		}
 
-		if err := page.Delete(); err != nil {
+		if err := db.Delete(page).Error; err != nil {
 			log.Printf("ERROR: %s\n", err)
 			w.WriteHeader(500)
 			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))

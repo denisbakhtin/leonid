@@ -1,7 +1,6 @@
 package system
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 
@@ -41,22 +40,14 @@ func SessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-//TemplateMiddleware stores parsed templates in context.
-func TemplateMiddleware(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		context.Set(r, "template", tmpl)
-		next.ServeHTTP(w, r)
-	}
-	return http.HandlerFunc(fn)
-}
-
-//DataMiddleware inits common request data (active user, et al). Must be preceded by SessionMiddleware
-func DataMiddleware(next http.Handler) http.Handler {
+//AuthMiddleware inits common request data (active user, et al). Must be preceded by SessionMiddleware
+func AuthMiddleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		//set active user
 		session := context.Get(r, "session").(*sessions.Session)
 		if uID, ok := session.Values["user_id"]; ok {
-			user, _ := models.GetUser(uID)
+			user := &models.User{}
+			models.GetDB().Find(user, uID)
 			if user.ID != 0 {
 				context.Set(r, "user", user)
 			}
@@ -71,7 +62,7 @@ func DataMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-//RestrictedMiddleware verifies presence on 'user' in context (which is set by DataMiddleware, if user has signed in
+//RestrictedMiddleware verifies presence on 'user' in context
 func RestrictedMiddleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if user := context.Get(r, "user"); user != nil {
@@ -79,7 +70,7 @@ func RestrictedMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		} else {
 			w.WriteHeader(403)
-			context.Get(r, "template").(*template.Template).Lookup("errors/403").Execute(w, nil)
+			GetTmpl().Lookup("errors/403").Execute(w, nil)
 			log.Printf("ERROR: unauthorized access to %s\n", r.RequestURI)
 		}
 	}

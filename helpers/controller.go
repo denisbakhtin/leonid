@@ -1,11 +1,9 @@
 package helpers
 
 import (
-	"html/template"
 	"net/http"
 	"strconv"
 
-	"github.com/denisbakhtin/leonid/models"
 	"github.com/gorilla/context"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
@@ -13,7 +11,6 @@ import (
 
 //DefaultData returns common to all pages template data
 func DefaultData(r *http.Request) map[string]interface{} {
-	testimonials, _ := models.GetRecentReviews()
 	return map[string]interface{}{
 		"ActiveUser":      context.Get(r, "user"), //signed in models.User
 		"Active":          "",                     //active uri shortening for menu item highlight
@@ -21,7 +18,6 @@ func DefaultData(r *http.Request) map[string]interface{} {
 		"TitleSuffix":     "",
 		"MetaDescription": "",
 		"SignupEnabled":   context.Get(r, "signup_enabled"), //signup route is enabled (otherwise everyone can signup ;)
-		"Testimonials":    testimonials,
 		csrf.TemplateTag:  csrf.TemplateField(r),
 	}
 }
@@ -34,11 +30,6 @@ func ErrorData(err error) map[string]interface{} {
 	}
 }
 
-//Template returns parsed *html/template.Template
-func Template(r *http.Request) *template.Template {
-	return context.Get(r, "template").(*template.Template)
-}
-
 //Session returns current session
 func Session(r *http.Request) *sessions.Session {
 	return context.Get(r, "session").(*sessions.Session)
@@ -48,6 +39,12 @@ func Session(r *http.Request) *sessions.Session {
 func Atoi64(s string) int64 {
 	i, _ := strconv.ParseInt(s, 10, 64)
 	return i
+}
+
+//Atouint converts string to uint, returns 0 if error
+func Atouint(s string) uint {
+	i, _ := strconv.ParseUint(s, 10, 32)
+	return uint(i)
 }
 
 //Atoi64r converts string to int64 reference

@@ -1,23 +1,28 @@
 package models
 
 import (
+	"log"
 	"regexp"
 	"strings"
 
 	"github.com/fiam/gounidecode/unidecode"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq" //postgresql driver, don't remove
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-var db *sqlx.DB
+var db *gorm.DB
 
-//InitDB establishes connection to database and saves its handler into db *sqlx.DB
+//InitDB establishes connection to database and saves its handler into db *gorm.DB
 func InitDB(connection string) {
-	db = sqlx.MustConnect("postgres", connection)
+	var err error
+	db, err = gorm.Open("postgres", connection)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 //GetDB returns database handler
-func GetDB() *sqlx.DB {
+func GetDB() *gorm.DB {
 	return db
 }
 
@@ -38,4 +43,11 @@ func createSlug(s string) string {
 	s = regexp.MustCompile("[^a-z0-9\\s]+").ReplaceAllString(s, "") //spaces
 	s = regexp.MustCompile("\\s+").ReplaceAllString(s, "-")         //spaces
 	return s
+}
+
+func ApplyMigrations() {
+	db.AutoMigrate(&User{})
+	db.AutoMigrate(&Page{})
+	db.AutoMigrate(&Category{})
+	db.AutoMigrate(&Product{})
 }

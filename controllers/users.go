@@ -8,23 +8,26 @@ import (
 
 	"github.com/denisbakhtin/leonid/helpers"
 	"github.com/denisbakhtin/leonid/models"
+	"github.com/denisbakhtin/leonid/system"
+	"github.com/jinzhu/gorm"
 )
 
 //UserIndex handles GET /admin/users route
 func UserIndex(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
-		list, err := models.GetUsers()
-		if err != nil {
+		var users []models.User
+		if err := db.Find(&users).Error; err != nil {
 			w.WriteHeader(500)
 			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
 			return
 		}
 		data["Title"] = "Пользователи"
 		data["Active"] = "users"
-		data["List"] = list
+		data["List"] = users
 		tmpl.Lookup("users/index").Execute(w, data)
 
 	} else {
@@ -37,9 +40,10 @@ func UserIndex(w http.ResponseWriter, r *http.Request) {
 
 //UserCreate handles /admin/new_user route
 func UserCreate(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
 		data["Title"] = "Новый пользователь"
@@ -62,7 +66,7 @@ func UserCreate(w http.ResponseWriter, r *http.Request) {
 			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
 			return
 		}
-		if err := user.Insert(); err != nil {
+		if err := db.Create(user).Error; err != nil {
 			session.AddFlash(err.Error())
 			session.Save(r, w)
 			http.Redirect(w, r, "/admin/new_user", 303)
@@ -80,14 +84,15 @@ func UserCreate(w http.ResponseWriter, r *http.Request) {
 
 //UserUpdate handles /admin/edit_user/:id route
 func UserUpdate(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
 		id := r.URL.Path[len("/admin/edit_user/"):]
-		user, err := models.GetUser(id)
-		if err != nil {
+		user := &models.User{}
+		if err := db.Find(user, id).Error; err != nil {
 			w.WriteHeader(404)
 			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
 			return
@@ -103,7 +108,7 @@ func UserUpdate(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == "POST" {
 
 		user := &models.User{
-			ID:       helpers.Atoi64(r.PostFormValue("id")),
+			Model:    gorm.Model{ID: helpers.Atouint(r.PostFormValue("id"))},
 			Name:     r.PostFormValue("name"),
 			Email:    r.PostFormValue("email"),
 			Password: r.PostFormValue("password"),
@@ -115,7 +120,7 @@ func UserUpdate(w http.ResponseWriter, r *http.Request) {
 			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
 			return
 		}
-		if err := user.Update(); err != nil {
+		if err := db.Save(user).Error; err != nil {
 			session.AddFlash(err.Error())
 			session.Save(r, w)
 			http.Redirect(w, r, r.RequestURI, 303)
@@ -133,18 +138,30 @@ func UserUpdate(w http.ResponseWriter, r *http.Request) {
 
 //UserDelete handles /admin/delete_user route
 func UserDelete(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+	tmpl := system.GetTmpl()
+	db := models.GetDB()
 
 	if r.Method == "POST" {
 
-		user, err := models.GetUser(r.PostFormValue("id"))
-		if err != nil {
+		user := &models.User{}
+		id := r.PostFormValue("id")
+		if err := db.Find(user, id).Error; err != nil || user.ID == 0 {
+			err := fmt.Errorf("ПОльзователь под номером: %v не найден", id)
 			log.Printf("ERROR: %s\n", err)
 			w.WriteHeader(404)
 			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
 		}
 
-		if err := user.Delete(); err != nil {
+		count := 0
+		db.Model(&models.User{}).Count(&count)
+		if count <= 1 {
+			err := fmt.Errorf("Can't remove last user")
+			log.Printf("ERROR: %s\n", err)
+			w.WriteHeader(500)
+			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
+			return
+		}
+		if err := db.Delete(user).Error; err != nil {
 			log.Printf("ERROR: %s\n", err)
 			w.WriteHeader(500)
 			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))

@@ -8,52 +8,37 @@ import (
 
 	"github.com/denisbakhtin/leonid/helpers"
 	"github.com/denisbakhtin/leonid/models"
+	"github.com/denisbakhtin/leonid/system"
+	"github.com/jinzhu/gorm"
 )
 
-//ArticleShow handles GET /articles/:id-slug route
-func ArticleShow(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
-	session := helpers.Session(r)
+//ProductShow handles GET /products/:id-slug route
+func ProductShow(w http.ResponseWriter, r *http.Request) {
+	tmpl := system.GetTmpl()
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
 		re := regexp.MustCompile("^[0-9]+")
-		id := re.FindString(r.URL.Path[len("/articles/"):])
-		article, err := models.GetArticle(id)
-		if err != nil || !article.Published {
+		id := re.FindString(r.URL.Path[len("/products/"):])
+		product := &models.Product{}
+		if err := db.First(product, id).Error; err != nil || !product.Published {
 			w.WriteHeader(404)
-			if err != nil {
-				tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
-			} else {
-				tmpl.Lookup("errors/404").Execute(w, nil)
-			}
+			err := fmt.Errorf("Изделие с номером: %v не найдено.", id)
+			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
 			return
 		}
 		//redirect to canonical url
-		if r.URL.Path != article.URL() {
-			http.Redirect(w, r, article.URL(), http.StatusSeeOther)
+		if r.URL.Path != product.URL() {
+			http.Redirect(w, r, product.URL(), http.StatusSeeOther)
 			return
 		}
-		testimonials, _ := models.GetRecentReviewsByArticle(article.ID)
-		article.Comments = append(article.TopComments, article.Comments...)
-		data["Article"] = article
-		data["Testimonials"] = testimonials
-		data["Title"] = article.Name
-		data["Active"] = "/articles"
-		data["MetaDescription"] = article.Excerpt
-		//Facebook open graph meta tags
-		data["Ogheadprefix"] = "og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#"
-		data["Ogtitle"] = article.Name
-		data["Ogurl"] = fmt.Sprintf("http://%s/articles/%d", r.Host, article.ID)
-		data["Ogtype"] = "article"
-		data["Ogdescription"] = article.Excerpt
-		if img := article.GetImage(); len(img) > 0 {
-			data["Ogimage"] = fmt.Sprintf("http://%s%s", r.Host, img)
-		}
+		data["Product"] = product
+		data["Title"] = product.Name
+		data["Active"] = "/products"
+		//data["MetaDescription"] = product.Excerpt
 		//flashes
-		data["Flash"] = session.Flashes("comments")
-		session.Save(r, w)
-		tmpl.Lookup("articles/show").Execute(w, data)
+		tmpl.Lookup("products/show").Execute(w, data)
 
 	} else {
 		err := fmt.Errorf("Method %q not allowed", r.Method)
@@ -63,23 +48,24 @@ func ArticleShow(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//ArticlePublicIndex handles GET /articles route
-func ArticlePublicIndex(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+//ProductIndex handles GET /admin/products route
+func ProductIndex(w http.ResponseWriter, r *http.Request) {
+	tmpl := system.GetTmpl()
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
-		list, err := models.GetPublishedArticles()
-		if err != nil {
+		var products []models.Product
+		if err := db.Find(&products).Error; err != nil {
 			log.Printf("ERROR: %s\n", err)
 			w.WriteHeader(500)
 			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
 			return
 		}
-		data["Title"] = "Список статей"
-		data["Active"] = r.RequestURI
-		data["List"] = list
-		tmpl.Lookup("articles/public-index").Execute(w, data)
+		data["Title"] = "Список продукции"
+		data["Active"] = "products"
+		data["List"] = products
+		tmpl.Lookup("products/index").Execute(w, data)
 
 	} else {
 		err := fmt.Errorf("Method %q not allowed", r.Method)
@@ -89,64 +75,37 @@ func ArticlePublicIndex(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//ArticleIndex handles GET /admin/articles route
-func ArticleIndex(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
-	data := helpers.DefaultData(r)
-	if r.Method == "GET" {
-
-		list, err := models.GetArticles()
-		if err != nil {
-			log.Printf("ERROR: %s\n", err)
-			w.WriteHeader(500)
-			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
-			return
-		}
-		data["Title"] = "Список статей"
-		data["Active"] = "articles"
-		data["List"] = list
-		tmpl.Lookup("articles/index").Execute(w, data)
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
-	}
-}
-
-//ArticleCreate handles /admin/new_article route
-func ArticleCreate(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+//ProductCreate handles /admin/new_product route
+func ProductCreate(w http.ResponseWriter, r *http.Request) {
+	tmpl := system.GetTmpl()
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
-		data["Title"] = "Новая статья"
-		data["Active"] = "articles"
+		data["Title"] = "Новое изделие"
+		data["Active"] = "products"
 		data["Flash"] = session.Flashes()
 		session.Save(r, w)
-		tmpl.Lookup("articles/form").Execute(w, data)
+		tmpl.Lookup("products/form").Execute(w, data)
 
 	} else if r.Method == "POST" {
 
 		r.ParseForm()
-		article := &models.Article{
-			Name:           r.PostFormValue("name"),
-			Slug:           r.PostFormValue("slug"),
-			Content:        r.PostFormValue("content"),
-			Excerpt:        r.PostFormValue("excerpt"),
-			SellingPreface: r.PostFormValue("selling_preface"),
-			Published:      helpers.Atob(r.PostFormValue("published")),
+		product := &models.Product{
+			Name:      r.PostFormValue("name"),
+			Slug:      r.PostFormValue("slug"),
+			Content:   r.PostFormValue("content"),
+			Published: helpers.Atob(r.PostFormValue("published")),
 		}
 
-		if err := article.Insert(); err != nil {
+		if err := db.Create(product).Error; err != nil {
 			session.AddFlash(err.Error())
 			session.Save(r, w)
-			http.Redirect(w, r, "/admin/new_article", 303)
+			http.Redirect(w, r, "/admin/new_product", 303)
 			return
 		}
-		http.Redirect(w, r, "/admin/articles", 303)
+		http.Redirect(w, r, "/admin/products", 303)
 
 	} else {
 		err := fmt.Errorf("Method %q not allowed", r.Method)
@@ -156,48 +115,48 @@ func ArticleCreate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//ArticleUpdate handles /admin/edit_article/:id route
-func ArticleUpdate(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+//ProductUpdate handles /admin/edit_product/:id route
+func ProductUpdate(w http.ResponseWriter, r *http.Request) {
+	tmpl := system.GetTmpl()
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
+	db := models.GetDB()
 	if r.Method == "GET" {
 
-		id := r.URL.Path[len("/admin/edit_article/"):]
-		article, err := models.GetArticle(id)
-		if err != nil {
+		id := r.URL.Path[len("/admin/edit_product/"):]
+		product := &models.Product{}
+		if err := db.First(product, id).Error; err != nil || product.ID == 0 {
+			err := fmt.Errorf("Изделие под номером: %v не найдено", id)
 			w.WriteHeader(404)
 			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
 			return
 		}
 
-		data["Title"] = "Редактировать статью"
-		data["Active"] = "articles"
-		data["Article"] = article
+		data["Title"] = "Редактировать изделие"
+		data["Active"] = "products"
+		data["Product"] = product
 		data["Flash"] = session.Flashes()
 		session.Save(r, w)
-		tmpl.Lookup("articles/form").Execute(w, data)
+		tmpl.Lookup("products/form").Execute(w, data)
 
 	} else if r.Method == "POST" {
 
 		r.ParseForm()
-		article := &models.Article{
-			ID:             helpers.Atoi64(r.PostFormValue("id")),
-			Name:           r.PostFormValue("name"),
-			Slug:           r.PostFormValue("slug"),
-			Content:        r.PostFormValue("content"),
-			Excerpt:        r.PostFormValue("excerpt"),
-			SellingPreface: r.PostFormValue("selling_preface"),
-			Published:      helpers.Atob(r.PostFormValue("published")),
+		product := &models.Product{
+			Model:     gorm.Model{ID: helpers.Atouint(r.PostFormValue("id"))},
+			Name:      r.PostFormValue("name"),
+			Slug:      r.PostFormValue("slug"),
+			Content:   r.PostFormValue("content"),
+			Published: helpers.Atob(r.PostFormValue("published")),
 		}
 
-		if err := article.Update(); err != nil {
+		if err := db.Save(product).Error; err != nil {
 			session.AddFlash(err.Error())
 			session.Save(r, w)
 			http.Redirect(w, r, r.RequestURI, 303)
 			return
 		}
-		http.Redirect(w, r, "/admin/articles", 303)
+		http.Redirect(w, r, "/admin/products", 303)
 
 	} else {
 		err := fmt.Errorf("Method %q not allowed", r.Method)
@@ -207,27 +166,30 @@ func ArticleUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//ArticleDelete handles /admin/delete_article route
-func ArticleDelete(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
+//ProductDelete handles /admin/delete_product route
+func ProductDelete(w http.ResponseWriter, r *http.Request) {
+	tmpl := system.GetTmpl()
+	db := models.GetDB()
 
 	if r.Method == "POST" {
 
-		article, err := models.GetArticle(r.PostFormValue("id"))
-		if err != nil {
+		product := &models.Product{}
+		id := r.PostFormValue("id")
+		if err := db.First(product, id).Error; err != nil || product.ID == 0 {
+			err := fmt.Errorf("Изделие под номером: %v не найдено", id)
 			log.Printf("ERROR: %s\n", err)
 			w.WriteHeader(404)
 			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
 			return
 		}
 
-		if err := article.Delete(); err != nil {
+		if err := db.Delete(product).Error; err != nil {
 			log.Printf("ERROR: %s\n", err)
 			w.WriteHeader(500)
 			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
 			return
 		}
-		http.Redirect(w, r, "/admin/articles", 303)
+		http.Redirect(w, r, "/admin/products", 303)
 
 	} else {
 		err := fmt.Errorf("Method %q not allowed", r.Method)

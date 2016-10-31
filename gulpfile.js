@@ -145,7 +145,8 @@ gulp.task('server:spawn', function() {
     server.kill();
 
   /* Spawn application server */
-  server = child.spawn('leonid');
+  //server = child.spawn('leonid');
+  server = child.spawn('go', ['run', 'main.go']);
   reload.reload('/');
 
 	server.stdout.on('data', function(data) {
