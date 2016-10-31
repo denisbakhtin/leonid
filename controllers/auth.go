@@ -14,11 +14,10 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	tmpl := helpers.Template(r)
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
-	T := helpers.T(r)
 
 	if r.Method == "GET" {
 
-		data["Title"] = T("sign_in")
+		data["Title"] = "Вход в систему"
 		data["Active"] = "signin"
 		data["Flash"] = session.Flashes()
 		session.Save(r, w)
@@ -64,11 +63,10 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	tmpl := helpers.Template(r)
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
-	T := helpers.T(r)
 
 	if r.Method == "GET" {
 
-		data["Title"] = T("sign_up")
+		data["Title"] = "Регистрация в системе"
 		data["Active"] = "signup"
 		data["Flash"] = session.Flashes()
 		session.Save(r, w)

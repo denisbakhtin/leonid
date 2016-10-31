@@ -43,17 +43,10 @@ func main() {
 	http.Handle("/pages/", Default(controllers.PageShow))
 	http.Handle("/articles", Default(controllers.ArticlePublicIndex))
 	http.Handle("/articles/", Default(controllers.ArticleShow))
-	http.Handle("/reviews", Default(controllers.ReviewPublicIndex))
-	http.Handle("/reviews/", Default(controllers.ReviewShow))
 	http.Handle("/rss", Default(controllers.RssXML))
 	http.Handle("/search", Default(controllers.Search))
 	http.Handle("/new_request", Default(controllers.RequestCreate))
 	http.Handle("/new_comment", Default(controllers.CommentPublicCreate))
-	http.Handle("/edit_comment", Default(controllers.CommentPublicUpdate))
-	//http.Handle("/comments", Default(controllers.CommentPublicIndex))
-	//http.Handle("/comments/", Default(controllers.CommentShow))
-	http.Handle("/new_review", Default(controllers.ReviewPublicCreate))
-	http.Handle("/edit_review", Default(controllers.ReviewPublicUpdate))
 
 	{
 		http.Handle("/admin", Restricted(controllers.Dashboard))
@@ -71,11 +64,9 @@ func main() {
 func Default(fn func(http.ResponseWriter, *http.Request)) http.Handler {
 	return CSRF(
 		system.SessionMiddleware(
-			system.LocaleMiddleware(
-				system.TemplateMiddleware(
-					system.DataMiddleware(
-						http.HandlerFunc(fn),
-					),
+			system.TemplateMiddleware(
+				system.DataMiddleware(
+					http.HandlerFunc(fn),
 				),
 			),
 		),
@@ -92,11 +83,9 @@ func Restricted(fn func(http.ResponseWriter, *http.Request)) http.Handler {
 //RestrictedWithoutCSRF executes default + restriced middleware chain without CSRF middleware
 func RestrictedWithoutCSRF(fn func(http.ResponseWriter, *http.Request)) http.Handler {
 	return system.SessionMiddleware(
-		system.LocaleMiddleware(
-			system.TemplateMiddleware(
-				system.DataMiddleware(
-					system.RestrictedMiddleware(http.HandlerFunc(fn)),
-				),
+		system.TemplateMiddleware(
+			system.DataMiddleware(
+				system.RestrictedMiddleware(http.HandlerFunc(fn)),
 			),
 		),
 	)

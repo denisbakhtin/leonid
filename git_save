@@ -1,0 +1,10 @@
+#!/bin/bash
+
+echo -n "Commit name? "
+read commit
+
+git add -u
+git add .
+git commit -m "$commit"
+git push origin master
+

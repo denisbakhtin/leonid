@@ -14,7 +14,6 @@ import (
 func UserIndex(w http.ResponseWriter, r *http.Request) {
 	tmpl := helpers.Template(r)
 	data := helpers.DefaultData(r)
-	T := helpers.T(r)
 	if r.Method == "GET" {
 
 		list, err := models.GetUsers()
@@ -23,7 +22,7 @@ func UserIndex(w http.ResponseWriter, r *http.Request) {
 			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
 			return
 		}
-		data["Title"] = T("users")
+		data["Title"] = "Пользователи"
 		data["Active"] = "users"
 		data["List"] = list
 		tmpl.Lookup("users/index").Execute(w, data)
@@ -41,10 +40,9 @@ func UserCreate(w http.ResponseWriter, r *http.Request) {
 	tmpl := helpers.Template(r)
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
-	T := helpers.T(r)
 	if r.Method == "GET" {
 
-		data["Title"] = T("new_user")
+		data["Title"] = "Новый пользователь"
 		data["Active"] = "users"
 		data["Flash"] = session.Flashes()
 		session.Save(r, w)
@@ -85,7 +83,6 @@ func UserUpdate(w http.ResponseWriter, r *http.Request) {
 	tmpl := helpers.Template(r)
 	session := helpers.Session(r)
 	data := helpers.DefaultData(r)
-	T := helpers.T(r)
 	if r.Method == "GET" {
 
 		id := r.URL.Path[len("/admin/edit_user/"):]
@@ -96,7 +93,7 @@ func UserUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data["Title"] = T("edit_user")
+		data["Title"] = "Редактировать пользователя"
 		data["Active"] = "users"
 		data["User"] = user
 		data["Flash"] = session.Flashes()

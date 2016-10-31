@@ -6,12 +6,8 @@
     <p id="name" class="pull-right text-success">миобаланс</p>
     <p class="text-success">Прикладная кинезиология</p>
   </a>
-  <div id="header-cta" class="hidden-xs">
-    <a class="btn btn-primary" href="#optin-form"><i class="glyphicon glyphicon-ok"></i>{{T "header_cta"}}</a>
-    <p class="text-warning lowercase">акция действует {{promoTill}}</p>
-  </div>
   <div id="header-phone">
-    <p class="phone nowrap">{{T "site_phone"}}</p>
+    <p class="phone nowrap">999-999-999</p>
     <p class="hours nowrap">c 9:00 до 21:00</p>
   </div>
 </div>
@@ -24,24 +20,21 @@
       <span class="icon-bar"></span>
       <span class="icon-bar"></span>
     </button>
-    <div id="header-cta" class="visible-xs">
-      <a class="btn btn-primary" href="#optin-form"><i class="glyphicon glyphicon-ok"></i>{{T "header_cta"}}</a>
-    </div>
   </div>
   <div class="navbar-collapse collapse">
     <ul class="nav navbar-nav">
       {{$active := .Active}}
       {{range mainMenu}}
       <li class="{{.CssClass}} {{isActive $active .URL}}">
-        <a href="{{.URL}}">{{T .Title}}</a>
+        <a href="{{.URL}}">{{.Title}}</a>
       </li>
       {{end}}
       {{if .ActiveUser}}
       <li>
-        <a href="/admin"><i class="glyphicon glyphicon-cog indent"></i>{{T "dashboard"}}</a>
+        <a href="/admin"><i class="glyphicon glyphicon-cog indent"></i>Панель управления</a>
       </li>
       <li>
-        <a href="/logout"><i class="glyphicon glyphicon-log-out indent"></i>{{T "logout"}}</a>
+        <a href="/logout"><i class="glyphicon glyphicon-log-out indent"></i>Выйти</a>
       </li>
       {{end}}
     </ul>

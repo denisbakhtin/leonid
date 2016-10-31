@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"strconv"
 
 	"github.com/denisbakhtin/leonid/helpers"
@@ -19,7 +18,6 @@ import (
 func CommentIndex(w http.ResponseWriter, r *http.Request) {
 	tmpl := helpers.Template(r)
 	data := helpers.DefaultData(r)
-	T := helpers.T(r)
 	if r.Method == "GET" {
 
 		list, err := models.GetComments()
@@ -28,70 +26,10 @@ func CommentIndex(w http.ResponseWriter, r *http.Request) {
 			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
 			return
 		}
-		data["Title"] = T("comments")
+		data["Title"] = "Вопросы и комментарии"
 		data["Active"] = "comments"
 		data["List"] = list
 		tmpl.Lookup("comments/index").Execute(w, data)
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
-	}
-}
-
-//CommentPublicIndex handles GET /comments route
-func CommentPublicIndex(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
-	data := helpers.DefaultData(r)
-	T := helpers.T(r)
-	if r.Method == "GET" {
-
-		list, err := models.GetPublishedComments()
-		if err != nil {
-			w.WriteHeader(500)
-			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
-			return
-		}
-		data["Title"] = T("questions_and_answers")
-		data["Active"] = "/comments"
-		data["List"] = list
-		tmpl.Lookup("comments/public-index").Execute(w, data)
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
-	}
-}
-
-//CommentShow handles GET /comments/:id-slug route
-func CommentShow(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
-	data := helpers.DefaultData(r)
-	if r.Method == "GET" {
-
-		re := regexp.MustCompile("^[0-9]+")
-		id := re.FindString(r.URL.Path[len("/comments/"):])
-		comment, err := models.GetComment(id)
-		if err != nil || !comment.Published {
-			w.WriteHeader(404)
-			tmpl.Lookup("errors/404").Execute(w, nil)
-			return
-		}
-		//redirect to canonical url
-		if r.URL.Path != comment.URL() {
-			http.Redirect(w, r, comment.URL(), http.StatusSeeOther)
-			return
-		}
-		data["Comment"] = comment
-		data["SimilarComments"], _ = comment.GetSimilar()
-		data["Article"], _ = models.GetArticle(comment.ArticleID)
-		data["Title"] = comment.Title()
-		data["Active"] = "/comments"
-		tmpl.Lookup("comments/show").Execute(w, data)
 
 	} else {
 		err := fmt.Errorf("Method %q not allowed", r.Method)
@@ -105,7 +43,6 @@ func CommentShow(w http.ResponseWriter, r *http.Request) {
 func CommentPublicCreate(w http.ResponseWriter, r *http.Request) {
 	session := helpers.Session(r)
 	tmpl := helpers.Template(r)
-	T := helpers.T(r)
 	if r.Method == "POST" {
 
 		r.ParseForm()
@@ -138,120 +75,9 @@ func CommentPublicCreate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		notifyAdminOfComment(r, comment)
-		session.AddFlash(T("thank_you_for_posting_question"), "comments")
+		session.AddFlash("Спасибо, что написали нам", "comments")
 		session.Save(r, w)
 		http.Redirect(w, r, fmt.Sprintf("/articles/%d#comments", comment.ArticleID), 303)
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
-	}
-}
-
-//CommentUpdate handles /admin/edit_comment/:id route
-func CommentUpdate(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
-	session := helpers.Session(r)
-	data := helpers.DefaultData(r)
-	T := helpers.T(r)
-	if r.Method == "GET" {
-
-		id := r.URL.Path[len("/admin/edit_comment/"):]
-		comment, err := models.GetComment(id)
-		if err != nil {
-			w.WriteHeader(404)
-			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
-			return
-		}
-
-		data["Title"] = T("edit_comment")
-		data["Active"] = "comments"
-		data["Comment"] = comment
-		data["Flash"] = session.Flashes("comments")
-		session.Save(r, w)
-		tmpl.Lookup("comments/form").Execute(w, data)
-
-	} else if r.Method == "POST" {
-
-		r.ParseForm()
-		comment := &models.Comment{
-			ID:         helpers.Atoi64(r.PostFormValue("id")),
-			AuthorCity: r.PostFormValue("author_city"),
-			Content:    r.PostFormValue("content"),
-			Answer:     r.PostFormValue("answer"),
-			Published:  helpers.Atob(r.PostFormValue("published")),
-		}
-
-		if err := comment.Update(); err != nil {
-			session.AddFlash(err.Error(), "comments")
-			session.Save(r, w)
-			http.Redirect(w, r, r.RequestURI, 303)
-			return
-		}
-		http.Redirect(w, r, "/admin/comments", 303)
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
-	}
-}
-
-//CommentPublicUpdate handles /edit_comment?token=:secure_token route
-func CommentPublicUpdate(w http.ResponseWriter, r *http.Request) {
-	tmpl := helpers.Template(r)
-	session := helpers.Session(r)
-	data := helpers.DefaultData(r)
-	T := helpers.T(r)
-	if r.Method == "GET" {
-
-		id := getIDFromToken(r.FormValue("token"))
-		comment, err := models.GetComment(id)
-		if err != nil || comment.Published {
-			err := fmt.Errorf(T("comment_not_found_or_already_published"))
-			w.WriteHeader(404)
-			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
-			return
-		}
-
-		comment.Published = true //set default to true
-		data["Title"] = T("edit_comment")
-		data["Active"] = "comments"
-		data["Comment"] = comment
-		data["SecureEdit"] = true
-		data["Flash"] = session.Flashes("comments")
-		session.Save(r, w)
-		tmpl.Lookup("comments/public-edit-form").Execute(w, data)
-
-	} else if r.Method == "POST" {
-
-		r.ParseForm()
-		comment := &models.Comment{
-			ID:          helpers.Atoi64(r.PostFormValue("id")),
-			AuthorName:  r.PostFormValue("author_name"),
-			AuthorEmail: r.PostFormValue("author_email"),
-			AuthorCity:  r.PostFormValue("author_city"),
-			Content:     r.PostFormValue("content"),
-			Answer:      r.PostFormValue("answer"),
-			Published:   helpers.Atob(r.PostFormValue("published")),
-		}
-
-		if err := comment.Update(); err != nil {
-			session.AddFlash(err.Error(), "comments")
-			session.Save(r, w)
-			http.Redirect(w, r, r.RequestURI, 303)
-			return
-		}
-		if comment.Published {
-			notifyClientOfComment(r, comment)
-			postCommentOnSocialWalls(r, comment)
-		}
-		session.AddFlash(T("comment_has_been_successfully_updated"))
-		session.Save(r, w)
-		http.Redirect(w, r, "/", 303)
 
 	} else {
 		err := fmt.Errorf("Method %q not allowed", r.Method)
@@ -293,11 +119,10 @@ func CommentDelete(w http.ResponseWriter, r *http.Request) {
 func notifyAdminOfComment(r *http.Request, comment *models.Comment) {
 	//closure is needed here, as r may be released by the time func finishes
 	tmpl := helpers.Template(r)
-	T := helpers.T(r)
 	go func() {
 		data := map[string]interface{}{
 			"Comment": comment,
-			"Token":   createTokenFromID(comment.ID),
+			//"Token":   createTokenFromID(comment.ID),
 		}
 		var b bytes.Buffer
 		if err := tmpl.Lookup("emails/question").Execute(&b, data); err != nil {
@@ -315,7 +140,7 @@ func notifyAdminOfComment(r *http.Request, comment *models.Comment) {
 		if len(smtp.Cc) > 0 {
 			msg.SetHeader("Cc", smtp.Cc)
 		}
-		msg.SetHeader("Subject", T("new_comment_has_been_created", map[string]interface{}{"Name": comment.AuthorName}))
+		msg.SetHeader("Subject", "На сайте опубликован новый комментарий")
 		msg.SetBody(
 			"text/html",
 			b.String(),
@@ -341,7 +166,6 @@ func notifyClientOfComment(r *http.Request, comment *models.Comment) {
 		return
 	}
 	tmpl := helpers.Template(r)
-	T := helpers.T(r)
 	go func() {
 		data := map[string]interface{}{
 			"Comment": comment,
@@ -356,7 +180,7 @@ func notifyClientOfComment(r *http.Request, comment *models.Comment) {
 		msg := gomail.NewMessage()
 		msg.SetHeader("From", smtp.From)
 		msg.SetHeader("To", comment.AuthorEmail)
-		msg.SetHeader("Subject", T("your_question_has_been_answered"))
+		msg.SetHeader("Subject", "На ваш комментарий ответили")
 		msg.SetBody(
 			"text/html",
 			b.String(),

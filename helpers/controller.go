@@ -9,18 +9,16 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
-	"github.com/nicksnyder/go-i18n/i18n"
 )
 
 //DefaultData returns common to all pages template data
 func DefaultData(r *http.Request) map[string]interface{} {
 	testimonials, _ := models.GetRecentReviews()
-	t := T(r)
 	return map[string]interface{}{
 		"ActiveUser":      context.Get(r, "user"), //signed in models.User
 		"Active":          "",                     //active uri shortening for menu item highlight
 		"Title":           "",                     //page title
-		"TitleSuffix":     t("title_suffix"),
+		"TitleSuffix":     "",
 		"MetaDescription": "",
 		"SignupEnabled":   context.Get(r, "signup_enabled"), //signup route is enabled (otherwise everyone can signup ;)
 		"Testimonials":    testimonials,
@@ -34,11 +32,6 @@ func ErrorData(err error) map[string]interface{} {
 		"Title": err.Error(),
 		"Error": err.Error(),
 	}
-}
-
-//T returns i18n.TranslateFunc for current locale
-func T(r *http.Request) i18n.TranslateFunc {
-	return context.Get(r, "T").(i18n.TranslateFunc)
 }
 
 //Template returns parsed *html/template.Template
