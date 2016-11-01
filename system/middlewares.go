@@ -1,13 +1,6 @@
 package system
 
-import (
-	"log"
-	"net/http"
-
-	"github.com/denisbakhtin/leonid/models"
-	"github.com/gorilla/context"
-	"github.com/gorilla/sessions"
-)
+import "github.com/gorilla/sessions"
 
 var (
 	store *sessions.FilesystemStore
@@ -15,32 +8,15 @@ var (
 )
 
 func createSession() {
-	store = sessions.NewFilesystemStore("", []byte(config.SessionSecret))
-	//store = sessions.NewCookieStore([]byte(config.SessionSecret))
-	store.Options = &sessions.Options{Domain: config.Domain, Path: "/", Secure: config.Ssl, HttpOnly: true, MaxAge: 7 * 86400}
-}
-
-//SessionMiddleware creates gorilla session and stores it in context
-func SessionMiddleware(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		defer context.Clear(r)
-		session, _ := store.Get(r, "session") //ignore unrecoverable error if file storage has been removed from /tmp dir after server reboot. Instead check session == nil
-		if session == nil {
-			var err error
-			session, err = store.New(r, "session")
-			if err != nil {
-				log.Printf("ERROR: can't get session: %s", err)
-				http.Error(w, err.Error(), 500)
-				return //abort chain
-			}
-		}
-		context.Set(r, "session", session)
-		next.ServeHTTP(w, r)
-	}
-	return http.HandlerFunc(fn)
+	/*
+		store = sessions.NewFilesystemStore("", []byte(config.SessionSecret))
+		//store = sessions.NewCookieStore([]byte(config.SessionSecret))
+		store.Options = &sessions.Options{Domain: config.Domain, Path: "/", Secure: config.Ssl, HttpOnly: true, MaxAge: 7 * 86400}
+	*/
 }
 
 //AuthMiddleware inits common request data (active user, et al). Must be preceded by SessionMiddleware
+/*
 func AuthMiddleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		//set active user
@@ -61,18 +37,4 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	}
 	return http.HandlerFunc(fn)
 }
-
-//RestrictedMiddleware verifies presence on 'user' in context
-func RestrictedMiddleware(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		if user := context.Get(r, "user"); user != nil {
-			//access granted
-			next.ServeHTTP(w, r)
-		} else {
-			w.WriteHeader(403)
-			GetTmpl().Lookup("errors/403").Execute(w, nil)
-			log.Printf("ERROR: unauthorized access to %s\n", r.RequestURI)
-		}
-	}
-	return http.HandlerFunc(fn)
-}
+*/

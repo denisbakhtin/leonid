@@ -145,10 +145,11 @@ gulp.task('server:spawn', function() {
     server.kill();
 
   /* Spawn application server */
-  //server = child.spawn('leonid');
-  server = child.spawn('go', ['run', 'main.go']);
+  server = child.spawn('leonid');
+  //server = child.spawn('go', ['run', 'main.go']);
   reload.reload('/');
 
+	/*
 	server.stdout.on('data', function(data) {
     var lines = data.toString().split('\n')
     for (var l in lines)
@@ -159,6 +160,7 @@ gulp.task('server:spawn', function() {
       message: lines
     });
   });
+	*/
 
   /* Print errors to stdout */
   server.stderr.on('data', function(data) {
@@ -189,13 +191,13 @@ gulp.task('server:watch', function() {
 /*********************************************************************
  * Build
  *********************************************************************/
-gulp.task('assets:prepare', ['build-external-js', 'build-css', 'build-js', 'fonts', 'images']);
-gulp.task('build', ['assets:prepare', 'server:build']);
+gulp.task('assets:build', ['build-external-js', 'build-css', 'build-js', 'fonts', 'images']);
+gulp.task('build', ['assets:build', 'server:build']);
 
 /*********************************************************************
  * Watchers
  *********************************************************************/
-gulp.task('watch', ['clean-build', 'build', 'server:build'], function () {
+gulp.task('watch', ['clean-build', 'build'], function () {
     //gulp.watch(['./Scripts/**/*.js', './Styles/**/*.scss'], ['build']);
 	reload.listen();
 	return gulp.start([

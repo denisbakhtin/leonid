@@ -6,7 +6,6 @@ import (
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/csrf"
-	"github.com/gorilla/sessions"
 )
 
 //DefaultData returns common to all pages template data
@@ -28,11 +27,6 @@ func ErrorData(err error) map[string]interface{} {
 		"Title": err.Error(),
 		"Error": err.Error(),
 	}
-}
-
-//Session returns current session
-func Session(r *http.Request) *sessions.Session {
-	return context.Get(r, "session").(*sessions.Session)
 }
 
 //Atoi64 converts string to int64, returns 0 if error

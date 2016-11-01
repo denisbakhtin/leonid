@@ -7,26 +7,20 @@ import (
 	"path"
 )
 
-//Configs contains application configurations for all application modes
-type Configs struct {
-	Debug   Config
-	Release Config
-	Test    Config
-}
-
 //Config contains application configuration for active application mode
 type Config struct {
 	Public        string `json:"public"`
+	Uploads       string `json:"-"`
 	Domain        string `json:"domain"`
 	SessionSecret string `json:"session_secret"`
 	CsrfSecret    string `json:"csrf_secret"`
 	Ssl           bool   `json:"ssl"`
 	SignupEnabled bool   `json:"signup_enabled"` //always set to false in release mode (config.json)
-	Language      string `json:"language"`       //default i18n language RFC 5646 code
 	Salt          string `json:"salt"`           //sha salt for generation of review & comment tokens
-	Database      DatabaseConfig
-	SMTP          SMTPConfig
-	Oauth         OauthConfig
+
+	Database DatabaseConfig
+	SMTP     SMTPConfig
+	Oauth    OauthConfig
 }
 
 //DatabaseConfig contains database connection info
@@ -75,18 +69,10 @@ func loadConfig() {
 	if err != nil {
 		panic(err)
 	}
-	configs := &Configs{}
-	err = json.Unmarshal(data, configs)
+	config = &Config{}
+	err = json.Unmarshal(data, config)
 	if err != nil {
 		panic(err)
-	}
-	switch GetMode() {
-	case DebugMode:
-		config = &configs.Debug
-	case ReleaseMode:
-		config = &configs.Release
-	case TestMode:
-		config = &configs.Test
 	}
 	if !path.IsAbs(config.Public) {
 		workingDir, err := os.Getwd()
@@ -95,19 +81,10 @@ func loadConfig() {
 		}
 		config.Public = path.Join(workingDir, config.Public)
 	}
+	config.Uploads = path.Join(config.Public, "uploads")
 }
 
 //GetConfig returns actual config
 func GetConfig() *Config {
 	return config
-}
-
-//PublicPath returns path to application public folder
-func PublicPath() string {
-	return config.Public
-}
-
-//UploadsPath returns path to public/uploads folder
-func UploadsPath() string {
-	return path.Join(config.Public, "uploads")
 }

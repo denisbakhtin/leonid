@@ -9,12 +9,12 @@ import (
 //Page type contains page info
 type Page struct {
 	gorm.Model
-	Name      string `json:"name"`
+	Name      string `json:"name" binding:"required"`
 	Slug      string `json:"slug"`
 	Content   string `json:"content"`
-	Published bool   `json:"published"`
+	Published bool   `json:"published" binding:"required"`
 }
 
 func (page *Page) URL() string {
-	return fmt.Sprintf("/pages/%d-%s", page.ID, page.Slug)
+	return fmt.Sprintf("/pages/%s", page.Slug)
 }

@@ -2,192 +2,116 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"regexp"
 
-	"github.com/denisbakhtin/leonid/helpers"
 	"github.com/denisbakhtin/leonid/models"
-	"github.com/denisbakhtin/leonid/system"
-	"github.com/jinzhu/gorm"
+	"github.com/gin-gonic/gin"
 )
 
-//PageShow handles /pages/:id route
-func PageShow(w http.ResponseWriter, r *http.Request) {
-	tmpl := system.GetTmpl()
-	data := helpers.DefaultData(r)
+func PageGet(c *gin.Context) {
 	db := models.GetDB()
-	if r.Method == "GET" {
 
-		re := regexp.MustCompile("^[0-9]+")
-		id := re.FindString(r.URL.Path[len("/pages/"):])
-		page := &models.Page{}
+	slug := c.Param("slug")
+	page := &models.Page{}
 
-		if err := db.First(page, id).Error; err != nil || !page.Published {
-			w.WriteHeader(404)
-			tmpl.Lookup("errors/404").Execute(w, nil)
-			return
-		}
-		//redirect to canonical url
-		if r.URL.Path != page.URL() {
-			http.Redirect(w, r, page.URL(), http.StatusSeeOther)
-			return
-		}
-		data["Page"] = page
-		data["Title"] = page.Name
-		data["Active"] = page.URL()
-		tmpl.Lookup("pages/show").Execute(w, data)
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
+	if err := db.Where("slug = ?", slug).First(page).Error; err != nil {
+		c.HTML(500, "errors/500", gin.H{})
+		return
 	}
+
+	if !page.Published {
+		c.HTML(404, "errors/404", gin.H{})
+		return
+	}
+
+	c.HTML(200, "pages/show", gin.H{
+		"Page":   page,
+		"Title":  page.Name,
+		"Active": page.URL(),
+	})
+
 }
 
-//PageIndex handles GET /admin/pages route
-func PageIndex(w http.ResponseWriter, r *http.Request) {
-	tmpl := system.GetTmpl()
-	data := helpers.DefaultData(r)
+func ApiPagesGet(c *gin.Context) {
 	db := models.GetDB()
-	if r.Method == "GET" {
 
-		var pages []models.Page
-		if err := db.Find(&pages).Error; err != nil {
-			w.WriteHeader(500)
-			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
-			return
-		}
-		data["Title"] = "Список страниц"
-		data["Active"] = "pages"
-		data["List"] = pages
-		tmpl.Lookup("pages/index").Execute(w, data)
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
+	var pages []models.Page
+	if err := db.Find(&pages).Error; err != nil {
+		c.JSON(500, "Внутренняя ошибка сервера")
+		return
 	}
+
+	c.JSON(200, pages)
 }
 
-//PageCreate handles /admin/new_page route
-func PageCreate(w http.ResponseWriter, r *http.Request) {
-	tmpl := system.GetTmpl()
-	session := helpers.Session(r)
-	data := helpers.DefaultData(r)
+func ApiPageGet(c *gin.Context) {
 	db := models.GetDB()
-	if r.Method == "GET" {
+	id := c.Param("id")
 
-		data["Title"] = "Новая страница"
-		data["Active"] = "pages"
-		data["Flash"] = session.Flashes()
-		session.Save(r, w)
-		tmpl.Lookup("pages/form").Execute(w, data)
+	page := &models.Page{}
+	db.Find(page, id)
+	if page.ID == 0 {
+		c.JSON(404, "Указанная страница не найдена")
+		return
+	}
 
-	} else if r.Method == "POST" {
+	c.JSON(200, page)
+}
 
-		page := &models.Page{
-			Name:      r.PostFormValue("name"),
-			Slug:      r.PostFormValue("slug"),
-			Content:   r.PostFormValue("content"),
-			Published: helpers.Atob(r.PostFormValue("published")),
-		}
-
+func ApiPageCreate(c *gin.Context) {
+	db := models.GetDB()
+	page := &models.Page{}
+	if c.BindJSON(page) == nil {
 		if err := db.Create(page).Error; err != nil {
-			session.AddFlash(err.Error())
-			session.Save(r, w)
-			http.Redirect(w, r, "/admin/new_page", 303)
+			c.JSON(http.StatusBadRequest, err.Error())
 			return
 		}
-		http.Redirect(w, r, "/admin/pages", 303)
+		c.JSON(http.StatusCreated, page)
 
 	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
+		c.JSON(http.StatusBadRequest, "Внимательно проверьте заполнение всех полей")
 	}
 }
 
-//PageUpdate handles /admin/edit_page/:id route
-func PageUpdate(w http.ResponseWriter, r *http.Request) {
-	tmpl := system.GetTmpl()
-	session := helpers.Session(r)
-	data := helpers.DefaultData(r)
+func ApiPageUpdate(c *gin.Context) {
 	db := models.GetDB()
-	if r.Method == "GET" {
+	id := c.Param("id")
+	page := &models.Page{}
 
-		id := r.URL.Path[len("/admin/edit_page/"):]
-		page := &models.Page{}
-		if err := db.Find(page, id).Error; err != nil {
-			w.WriteHeader(400)
-			tmpl.Lookup("errors/400").Execute(w, helpers.ErrorData(err))
+	if c.BindJSON(page) == nil {
+		pageDB := &models.Page{}
+		db.Find(pageDB, id)
+		if pageDB.ID == 0 {
+			c.JSON(404, "Указанная страница не найдена")
 			return
-		}
-
-		data["Title"] = "Редактировать страницу"
-		data["Active"] = "pages"
-		data["Page"] = page
-		data["Flash"] = session.Flashes()
-		session.Save(r, w)
-		tmpl.Lookup("pages/form").Execute(w, data)
-
-	} else if r.Method == "POST" {
-
-		page := &models.Page{
-			Model:     gorm.Model{ID: helpers.Atouint(r.PostFormValue("id"))},
-			Name:      r.PostFormValue("name"),
-			Slug:      r.PostFormValue("slug"),
-			Content:   r.PostFormValue("content"),
-			Published: helpers.Atob(r.PostFormValue("published")),
 		}
 
 		if err := db.Save(page).Error; err != nil {
-			session.AddFlash(err.Error())
-			session.Save(r, w)
-			http.Redirect(w, r, r.RequestURI, 303)
+			c.JSON(500, fmt.Errorf("Ошибка при сохранении записи: %s", err.Error()))
 			return
 		}
-		http.Redirect(w, r, "/admin/pages", 303)
+		c.JSON(200, nil)
 
 	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
+		c.JSON(http.StatusBadRequest, "Внимательно проверьте заполнение всех полей")
+		return
 	}
 }
 
-//PageDelete handles /admin/delete_page route
-func PageDelete(w http.ResponseWriter, r *http.Request) {
-	tmpl := system.GetTmpl()
+func ApiPageDelete(c *gin.Context) {
 	db := models.GetDB()
+	id := c.Param("id")
 
-	if r.Method == "POST" {
-
-		page := &models.Page{}
-		id := r.PostFormValue("id")
-		if err := db.First(page, id).Error; err != nil || page.ID == 0 {
-			err := fmt.Errorf("Страница с номером: %v не найдена.", id)
-			log.Printf("ERROR: %s\n", err)
-			w.WriteHeader(404)
-			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
-		}
-
-		if err := db.Delete(page).Error; err != nil {
-			log.Printf("ERROR: %s\n", err)
-			w.WriteHeader(500)
-			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
-			return
-		}
-		http.Redirect(w, r, "/admin/pages", 303)
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
+	page := &models.Page{}
+	db.First(page, id)
+	if page.ID == 0 {
+		c.JSON(404, "Страница с указанным номером не найдена")
+		return
 	}
+
+	if err := db.Delete(page).Error; err != nil {
+		c.JSON(500, fmt.Sprintf("Ошибка при удалении записи: %s", err.Error()))
+		return
+	}
+	c.JSON(200, nil)
 }

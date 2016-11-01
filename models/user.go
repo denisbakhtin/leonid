@@ -10,7 +10,30 @@ type User struct {
 	gorm.Model
 	Email    string `json:"email" gorm:"unique_index"`
 	Name     string `json:"name"`
-	Password string `json:"password"`
+	Password string `json:"-"`
+}
+
+//UserJ type contains user info
+type UserJ struct {
+	gorm.Model
+	Email           string `json:"email" binding:"required"`
+	Name            string `json:"name" binding:"required"`
+	CurrentPassword string `json:"current_password"`
+	Password        string `json:"password"`
+	PasswordConfirm string `json:"password_confirm"`
+}
+
+//Signin type contains login information
+type Signin struct {
+	Email    string `form:"email" binding:"required"`
+	Password string `form:"password" binding:"required"`
+}
+
+//Signup type contains registration information
+type Signup struct {
+	Email           string `form:"email" binding:"required"`
+	Password        string `form:"password" binding:"required"`
+	PasswordConfirm string `form:"password_confirm" binding:"required"`
 }
 
 //HashPassword substitutes User.Password with its bcrypt hash

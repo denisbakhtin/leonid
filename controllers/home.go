@@ -3,23 +3,17 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/denisbakhtin/leonid/helpers"
-	"github.com/denisbakhtin/leonid/system"
+	"github.com/gin-gonic/contrib/sessions"
+	"github.com/gin-gonic/gin"
 )
 
 //Home handles GET / route
-func Home(w http.ResponseWriter, r *http.Request) {
-	tmpl, data := system.GetTmpl(), helpers.DefaultData(r)
-	session := helpers.Session(r)
-	if r.RequestURI != "/" {
-		w.WriteHeader(404)
-		tmpl.Lookup("errors/404").Execute(w, nil)
-		return
-	}
-	data["Title"] = "Вечная память приветствует Вас"
-	data["Active"] = "/"
-	data["Flash"] = session.Flashes()
-	data["TitleSuffix"] = ""
-	session.Save(r, w)
-	tmpl.Lookup("home/show").Execute(w, data)
+func Home(c *gin.Context) {
+	session := sessions.Default(c)
+	c.HTML(http.StatusOK, "home/show", gin.H{
+		"Title":   "Вечная память приветствует Вас",
+		"Active":  "/",
+		"Flashes": session.Flashes(),
+	})
+	session.Save()
 }

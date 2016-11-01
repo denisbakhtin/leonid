@@ -2,199 +2,116 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"regexp"
 
-	"github.com/denisbakhtin/leonid/helpers"
 	"github.com/denisbakhtin/leonid/models"
-	"github.com/denisbakhtin/leonid/system"
-	"github.com/jinzhu/gorm"
+	"github.com/gin-gonic/gin"
 )
 
-//ProductShow handles GET /products/:id-slug route
-func ProductShow(w http.ResponseWriter, r *http.Request) {
-	tmpl := system.GetTmpl()
-	data := helpers.DefaultData(r)
+func ProductGet(c *gin.Context) {
 	db := models.GetDB()
-	if r.Method == "GET" {
 
-		re := regexp.MustCompile("^[0-9]+")
-		id := re.FindString(r.URL.Path[len("/products/"):])
-		product := &models.Product{}
-		if err := db.First(product, id).Error; err != nil || !product.Published {
-			w.WriteHeader(404)
-			err := fmt.Errorf("Изделие с номером: %v не найдено.", id)
-			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
-			return
-		}
-		//redirect to canonical url
-		if r.URL.Path != product.URL() {
-			http.Redirect(w, r, product.URL(), http.StatusSeeOther)
-			return
-		}
-		data["Product"] = product
-		data["Title"] = product.Name
-		data["Active"] = "/products"
-		//data["MetaDescription"] = product.Excerpt
-		//flashes
-		tmpl.Lookup("products/show").Execute(w, data)
+	slug := c.Param("slug")
+	product := &models.Product{}
 
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
+	if err := db.Where("slug = ?", slug).First(product).Error; err != nil {
+		c.HTML(500, "errors/500", gin.H{})
+		return
 	}
+
+	if !product.Published {
+		c.HTML(404, "errors/404", gin.H{})
+		return
+	}
+
+	c.HTML(200, "products/show", gin.H{
+		"Product": product,
+		"Title":   product.Name,
+		"Active":  product.URL(),
+	})
+
 }
 
-//ProductIndex handles GET /admin/products route
-func ProductIndex(w http.ResponseWriter, r *http.Request) {
-	tmpl := system.GetTmpl()
-	data := helpers.DefaultData(r)
+func ApiProductsGet(c *gin.Context) {
 	db := models.GetDB()
-	if r.Method == "GET" {
 
-		var products []models.Product
-		if err := db.Find(&products).Error; err != nil {
-			log.Printf("ERROR: %s\n", err)
-			w.WriteHeader(500)
-			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
-			return
-		}
-		data["Title"] = "Список продукции"
-		data["Active"] = "products"
-		data["List"] = products
-		tmpl.Lookup("products/index").Execute(w, data)
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
+	var products []models.Product
+	if err := db.Find(&products).Error; err != nil {
+		c.JSON(500, "Внутренняя ошибка сервера")
+		return
 	}
+
+	c.JSON(200, products)
 }
 
-//ProductCreate handles /admin/new_product route
-func ProductCreate(w http.ResponseWriter, r *http.Request) {
-	tmpl := system.GetTmpl()
-	session := helpers.Session(r)
-	data := helpers.DefaultData(r)
+func ApiProductGet(c *gin.Context) {
 	db := models.GetDB()
-	if r.Method == "GET" {
+	id := c.Param("id")
 
-		data["Title"] = "Новое изделие"
-		data["Active"] = "products"
-		data["Flash"] = session.Flashes()
-		session.Save(r, w)
-		tmpl.Lookup("products/form").Execute(w, data)
+	product := &models.Product{}
+	db.Find(product, id)
+	if product.ID == 0 {
+		c.JSON(404, "Указанный товар не найден")
+		return
+	}
 
-	} else if r.Method == "POST" {
+	c.JSON(200, product)
+}
 
-		r.ParseForm()
-		product := &models.Product{
-			Name:      r.PostFormValue("name"),
-			Slug:      r.PostFormValue("slug"),
-			Content:   r.PostFormValue("content"),
-			Published: helpers.Atob(r.PostFormValue("published")),
-		}
-
+func ApiProductCreate(c *gin.Context) {
+	db := models.GetDB()
+	product := &models.Product{}
+	if c.BindJSON(product) == nil {
 		if err := db.Create(product).Error; err != nil {
-			session.AddFlash(err.Error())
-			session.Save(r, w)
-			http.Redirect(w, r, "/admin/new_product", 303)
+			c.JSON(http.StatusBadRequest, err.Error())
 			return
 		}
-		http.Redirect(w, r, "/admin/products", 303)
+		c.JSON(http.StatusCreated, product)
 
 	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
+		c.JSON(http.StatusBadRequest, "Внимательно проверьте заполнение всех полей")
 	}
 }
 
-//ProductUpdate handles /admin/edit_product/:id route
-func ProductUpdate(w http.ResponseWriter, r *http.Request) {
-	tmpl := system.GetTmpl()
-	session := helpers.Session(r)
-	data := helpers.DefaultData(r)
+func ApiProductUpdate(c *gin.Context) {
 	db := models.GetDB()
-	if r.Method == "GET" {
+	id := c.Param("id")
+	product := &models.Product{}
 
-		id := r.URL.Path[len("/admin/edit_product/"):]
-		product := &models.Product{}
-		if err := db.First(product, id).Error; err != nil || product.ID == 0 {
-			err := fmt.Errorf("Изделие под номером: %v не найдено", id)
-			w.WriteHeader(404)
-			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
+	if c.BindJSON(product) == nil {
+		productDB := &models.Product{}
+		db.Find(productDB, id)
+		if productDB.ID == 0 {
+			c.JSON(404, "Указанный товар не найден")
 			return
-		}
-
-		data["Title"] = "Редактировать изделие"
-		data["Active"] = "products"
-		data["Product"] = product
-		data["Flash"] = session.Flashes()
-		session.Save(r, w)
-		tmpl.Lookup("products/form").Execute(w, data)
-
-	} else if r.Method == "POST" {
-
-		r.ParseForm()
-		product := &models.Product{
-			Model:     gorm.Model{ID: helpers.Atouint(r.PostFormValue("id"))},
-			Name:      r.PostFormValue("name"),
-			Slug:      r.PostFormValue("slug"),
-			Content:   r.PostFormValue("content"),
-			Published: helpers.Atob(r.PostFormValue("published")),
 		}
 
 		if err := db.Save(product).Error; err != nil {
-			session.AddFlash(err.Error())
-			session.Save(r, w)
-			http.Redirect(w, r, r.RequestURI, 303)
+			c.JSON(500, fmt.Errorf("Ошибка при сохранении записи: %s", err.Error()))
 			return
 		}
-		http.Redirect(w, r, "/admin/products", 303)
+		c.JSON(200, nil)
 
 	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
+		c.JSON(http.StatusBadRequest, "Внимательно проверьте заполнение всех полей")
+		return
 	}
 }
 
-//ProductDelete handles /admin/delete_product route
-func ProductDelete(w http.ResponseWriter, r *http.Request) {
-	tmpl := system.GetTmpl()
+func ApiProductDelete(c *gin.Context) {
 	db := models.GetDB()
+	id := c.Param("id")
 
-	if r.Method == "POST" {
-
-		product := &models.Product{}
-		id := r.PostFormValue("id")
-		if err := db.First(product, id).Error; err != nil || product.ID == 0 {
-			err := fmt.Errorf("Изделие под номером: %v не найдено", id)
-			log.Printf("ERROR: %s\n", err)
-			w.WriteHeader(404)
-			tmpl.Lookup("errors/404").Execute(w, helpers.ErrorData(err))
-			return
-		}
-
-		if err := db.Delete(product).Error; err != nil {
-			log.Printf("ERROR: %s\n", err)
-			w.WriteHeader(500)
-			tmpl.Lookup("errors/500").Execute(w, helpers.ErrorData(err))
-			return
-		}
-		http.Redirect(w, r, "/admin/products", 303)
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		w.WriteHeader(405)
-		tmpl.Lookup("errors/405").Execute(w, helpers.ErrorData(err))
+	product := &models.Product{}
+	db.First(product, id)
+	if product.ID == 0 {
+		c.JSON(404, "Товар с указанным номером не найден")
+		return
 	}
+
+	if err := db.Delete(product).Error; err != nil {
+		c.JSON(500, fmt.Sprintf("Ошибка при удалении записи: %s", err.Error()))
+		return
+	}
+	c.JSON(200, nil)
 }
