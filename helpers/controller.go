@@ -1,23 +1,24 @@
 package helpers
 
 import (
-	"net/http"
 	"strconv"
 
-	"github.com/gorilla/context"
+	"github.com/gin-gonic/contrib/sessions"
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/csrf"
 )
 
 //DefaultData returns common to all pages template data
-func DefaultData(r *http.Request) map[string]interface{} {
+func H(c *gin.Context) map[string]interface{} {
+	session := sessions.Default(c)
 	return map[string]interface{}{
-		"ActiveUser":      context.Get(r, "user"), //signed in models.User
-		"Active":          "",                     //active uri shortening for menu item highlight
-		"Title":           "",                     //page title
-		"TitleSuffix":     "",
+		"Authenticated":   (session.Get("user_id") != nil),
+		"Url":             c.Request.RequestURI,
+		"Title":           "", //page title
 		"MetaDescription": "",
-		"SignupEnabled":   context.Get(r, "signup_enabled"), //signup route is enabled (otherwise everyone can signup ;)
-		csrf.TemplateTag:  csrf.TemplateField(r),
+		"SignupEnabled":   true,
+		"Flash":           session.Flashes(),
+		csrf.TemplateTag:  nil,
 	}
 }
 

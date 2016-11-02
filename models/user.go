@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -52,4 +54,13 @@ func (user *User) ComparePassword(password string) error {
 		return err
 	}
 	return nil
+}
+
+func (user *User) BeforeDelete() (err error) {
+	count := 0
+	db.Model(&User{}).Count(&count)
+	if count == 1 {
+		return fmt.Errorf("Невозможно удалить последнего пользователя")
+	}
+	return
 }

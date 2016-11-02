@@ -1,4 +1,4 @@
-{{define "header"}}
+{{define "admin"}}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -7,13 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="alternate" type="application/rss+xml" title="Blog rss" href="/rss" />
     <link href="/public/favicon.ico" rel="icon" type="image/x-icon">
-    <title>{{.Title}}{{.TitleSuffix}}</title>
-    {{if .MetaDescription}}
-    <meta name="description" content="{{.MetaDescription}}" />
-    {{end}}
 
     <link href="/public/css/app.css" rel="stylesheet">
-
     <script src="/public/js/vendor.js"></script>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -25,4 +20,16 @@
   </head>
   <body id="public-body">
     <div id="main-container" class="container">
+
+			<div id="admin-app"></div>
+
+      <div id="footer" class="full-width">
+        <div class="container">
+          <p class="text-muted">&copy; 2017 "Вечная Память".
+        </div>
+      </div>
+    </div> <!-- #main-container -->
+    <script src="/public/js/app.js"></script>
+  </body>
+</html>
 {{end}}

@@ -120,3 +120,6 @@ a, button {
         left: 50%;
     }
 }
+.btn + .btn {
+	margin-left: 0.5em;
+}

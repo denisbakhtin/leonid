@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/denisbakhtin/leonid/helpers"
 	"github.com/denisbakhtin/leonid/models"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -11,12 +12,10 @@ import (
 
 func SignInGet(c *gin.Context) {
 	session := sessions.Default(c)
-	c.HTML(http.StatusOK, "auth/signin", gin.H{
-		"Title":  "Вход в систему",
-		"Active": "signin",
-		"Flash":  session.Flashes(),
-	})
+	H := helpers.H(c)
+	H["Title"] = "Вход в систему"
 	session.Save()
+	c.HTML(http.StatusOK, "auth/signin", H)
 }
 
 func SignInPost(c *gin.Context) {
@@ -25,20 +24,10 @@ func SignInPost(c *gin.Context) {
 	db := models.GetDB()
 
 	if c.Bind(&signin) == nil {
-		user := &models.User{
-			Email:    signin.Email,
-			Password: signin.Password,
-		}
-		if err := user.HashPassword(); err != nil {
-			session.AddFlash("Ошибка входа в систему, повторите попытку или сообщите администратору.")
-			session.Save()
-			c.Redirect(303, "/signin")
-			return
-		}
 		//check existence
 		userDB := &models.User{}
-		db.Where(user).First(userDB)
-		if userDB.ID == 0 {
+		db.Where("email = lower(?)", signin.Email).First(userDB)
+		if userDB.ID == 0 || userDB.ComparePassword(signin.Password) != nil {
 			session.AddFlash("Адрес эл. почты или пароль указаны неверно")
 			session.Save()
 			c.Redirect(303, "/signin")
@@ -57,19 +46,17 @@ func SignInPost(c *gin.Context) {
 
 func SignUpGet(c *gin.Context) {
 	session := sessions.Default(c)
-	c.HTML(200, "auth/signup", gin.H{
-		"Title":  "Регистрация в системе",
-		"Active": "signup",
-		"Flash":  session.Flashes(),
-	})
+	H := helpers.H(c)
+	H["Title"] = "Регистрация в системе"
 	session.Save()
+	c.HTML(200, "auth/signup", H)
 }
 
 func SignUpPost(c *gin.Context) {
 	session := sessions.Default(c)
 	db := models.GetDB()
-	signup := models.Signup{}
-	if gin.Bind(&signup) == nil {
+	signup := &models.Signup{}
+	if c.Bind(signup) == nil {
 		user := &models.User{
 			Email:    strings.ToLower(signup.Email),
 			Password: signup.Password,
@@ -106,9 +93,16 @@ func SignUpPost(c *gin.Context) {
 	}
 }
 
-func LogoutPost(c *gin.Context) {
+func Logout(c *gin.Context) {
 	session := sessions.Default(c)
 	session.Delete("user_id")
 	session.Save()
 	c.Redirect(303, "/")
+}
+
+func ApiLogout(c *gin.Context) {
+	session := sessions.Default(c)
+	session.Delete("user_id")
+	session.Save()
+	c.JSON(200, nil)
 }

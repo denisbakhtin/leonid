@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/claudiu/gocron"
 	"github.com/denisbakhtin/leonid/controllers"
@@ -63,30 +64,34 @@ func main() {
 	router.POST("/signin", controllers.SignInPost)
 	router.GET("/signup", controllers.SignUpGet)
 	router.POST("/signup", controllers.SignUpPost)
-	router.POST("/logout", controllers.LogoutPost)
+	router.Any("/logout", controllers.Logout)
 
 	router.GET("/page/:slug", controllers.PageGet)
 	router.GET("/product/:slug", controllers.ProductGet)
 
+	//TODO: check authentication status
+	router.GET("/admin", controllers.AdminGet)
 	api := router.Group("/api")
 	{
 		api.GET("/pages", controllers.ApiPagesGet)
-		api.GET("/page/:id", controllers.ApiPageGet)
-		api.PUT("/page/:id", controllers.ApiPageUpdate)
-		api.DELETE("/page/:id", controllers.ApiPageDelete)
+		api.GET("/pages/:id", controllers.ApiPageGet)
+		api.PUT("/pages/:id", controllers.ApiPageUpdate)
+		api.DELETE("/pages/:id", controllers.ApiPageDelete)
 		api.POST("/pages", controllers.ApiPageCreate)
 
 		api.GET("/products", controllers.ApiProductsGet)
-		api.GET("/product/:id", controllers.ApiProductGet)
-		api.PUT("/product/:id", controllers.ApiProductUpdate)
-		api.DELETE("/product/:id", controllers.ApiProductDelete)
+		api.GET("/products/:id", controllers.ApiProductGet)
+		api.PUT("/products/:id", controllers.ApiProductUpdate)
+		api.DELETE("/products/:id", controllers.ApiProductDelete)
 		api.POST("/products", controllers.ApiProductCreate)
 
 		api.GET("/users", controllers.ApiUsersGet)
-		api.GET("/user/:id", controllers.ApiUserGet)
-		api.PUT("/user/:id", controllers.ApiUserUpdate)
-		api.DELETE("/user/:id", controllers.ApiUserDelete)
+		api.GET("/users/:id", controllers.ApiUserGet)
+		api.PUT("/users/:id", controllers.ApiUserUpdate)
+		api.DELETE("/users/:id", controllers.ApiUserDelete)
 		api.POST("/users", controllers.ApiUserCreate)
+		api.POST("/logout", controllers.ApiLogout)
 	}
+	router.StaticFS("/public", http.Dir("public"))
 	router.Run(":8030")
 }

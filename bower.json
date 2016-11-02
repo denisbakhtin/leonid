@@ -17,6 +17,7 @@
     "font-awesome": "4.6.1",
     "jquery": "2.2.3",
     "eonasdan-bootstrap-datetimepicker": "4.17.37",
-    "animate.css": "3.5.1"
+    "animate.css": "3.5.1",
+    "parsleyjs": "^2.5.1"
   }
 }

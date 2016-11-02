@@ -12,11 +12,10 @@ var gulp = require('gulp'),
     buffer = require('vinyl-buffer'),
     browserify = require('browserify'),
     watchify = require('watchify'),
-    babel = require('babelify'),
-	reload = require('gulp-livereload'),
-	util       = require('gulp-util'),
-	notifier   = require('node-notifier'),
-	child = require('child_process');
+    reload = require('gulp-livereload'),
+    util       = require('gulp-util'),
+    notifier   = require('node-notifier'),
+    child = require('child_process');
 
 var sync = require('gulp-sync')(gulp).sync;
 /*********************************************************************
@@ -25,65 +24,65 @@ var sync = require('gulp-sync')(gulp).sync;
 var server = null;
 var dest = "./public/";
 var paths = {
-    externalJs: [
-        "./bower_components/jquery/dist/jquery.js",
-        "./bower_components/bootstrap-sass/assets/javascripts/bootstrap.js",
-        "./bower_components/mithril/mithril.js"
-    ],
-    js: [
-        './assets/js/main.js'
-        // for all files use: './assets/js/**/*.js'*/
-    ],
-    jsEntry: './assets/js/main.js',
-    css : [
-        "./bower_components/font-awesome/css/font-awesome.css",
-        "./bower_components/animate.css/animate.css",
-        './assets/scss/main.scss'
-    ],
-    images: './assets/images/**/*',
-    fonts: "./bower_components/font-awesome/fonts/*",
-    jsDest: dest + "js",
-    cssDest: dest + "css",
-    fontsDest: dest + "fonts",
-    imagesDest: dest + "images"
+  externalJs: [
+    "./bower_components/jquery/dist/jquery.js",
+    "./bower_components/bootstrap-sass/assets/javascripts/bootstrap.js",
+    "./bower_components/mithril/mithril.js",
+  ],
+  js: [
+    './assets/js/main.js',
+      // for all files use: './assets/js/**/*.js'*/
+  ],
+  jsEntry: './assets/js/main.js',
+  css : [
+    "./bower_components/font-awesome/css/font-awesome.css",
+    "./bower_components/animate.css/animate.css",
+    './assets/scss/main.scss',
+  ],
+  images: './assets/images/**/*',
+  fonts: "./bower_components/font-awesome/fonts/**/*.{ttf,woff,woff2,otf,eot,svg}",
+  jsDest: dest + "js",
+  cssDest: dest + "css",
+  fontsDest: dest + "fonts",
+  imagesDest: dest + "images",
 };
 
 
-/*********************************************************************
- * Assets Tasks
- *********************************************************************/
+  /*********************************************************************
+   * Assets Tasks
+   *********************************************************************/
 
 // Clean (optional)
 gulp.task('clean-css', function (cb) {
-    return rimraf(paths.cssDest, cb);
+  return rimraf(paths.cssDest, cb);
 });
 gulp.task('clean-js', function (cb) {
-    return rimraf(paths.jsDest, cb);
+  return rimraf(paths.jsDest, cb);
 });
 gulp.task('clean-fonts', function (cb) {
-    return rimraf(paths.fontsDest, cb);
+  return rimraf(paths.fontsDest, cb);
 });
 gulp.task('clean-images', function (cb) {
-    return rimraf(paths.imagesDest, cb);
+  return rimraf(paths.imagesDest, cb);
 });
 
 gulp.task('clean-build', ['clean-css', 'clean-js', 'clean-images']);
 
 // Fonts
 gulp.task('fonts', function () {
-    return gulp.src(paths.fonts)
-            .pipe(gulp.dest(paths.fontsDest));
+  return gulp.src(paths.fonts)
+    .pipe(gulp.dest(paths.fontsDest));
 });
 
 //Images
 gulp.task('images', function () {
-    return gulp.src(paths.images)
-            .pipe(gulp.dest(paths.imagesDest));
+  return gulp.src(paths.images)
+    .pipe(gulp.dest(paths.imagesDest));
 });
 
 // External libs
 gulp.task('build-external-js', function () {
-    return gulp.src(paths.externalJs).pipe(concat('vendor.js')).pipe(gulp.dest(paths.jsDest));
+  return gulp.src(paths.externalJs).pipe(concat('vendor.js')).pipe(gulp.dest(paths.jsDest));
 });
 //gulp.task('build-external-css', function () {
 //    return gulp.src(paths.externalCss).pipe(concat('bootstrap.css')).pipe(gulp.dest(paths.cssDest));
@@ -91,31 +90,30 @@ gulp.task('build-external-js', function () {
 
 // JavaScript application & css
 gulp.task('build-js', function () {
-    return browserify(paths.jsEntry, { debug: true })
-            .transform("babelify", { presets: ["es2015"] })
-            .bundle()
-            .on('error', function (err) { console.error(err); this.emit('end'); })
-            .pipe(source('build.js'))
-            .pipe(buffer())
-            .pipe(concat('app.js'))
-            .pipe(gulp.dest(paths.jsDest))
-			.pipe(reload());
+  return watchify(browserify(paths.jsEntry, { debug: true }))
+    .bundle()
+    .on('error', function (err) { console.error(err); this.emit('end'); })
+    .pipe(source('build.js'))
+    .pipe(buffer())
+    .pipe(concat('app.js'))
+    .pipe(gulp.dest(paths.jsDest))
+    .pipe(reload());
 });
 
 gulp.task('build-css', function () {
-    return gulp.src(paths.css)
-            .pipe(sass().on('error', sass.logError))
-            .pipe(autoprefixer())
-            .pipe(concat('app.css'))
-            .pipe(gulp.dest(paths.cssDest))
-			.pipe(reload());
+  return gulp.src(paths.css)
+    .pipe(sass().on('error', sass.logError))
+    .pipe(autoprefixer())
+    .pipe(concat('app.css'))
+    .pipe(gulp.dest(paths.cssDest))
+    .pipe(reload());
 });
 
 gulp.task('assets:build', ['build-css', 'build-js']);
 gulp.task('assets:watch', function () {
-    gulp.watch(['./assets/js/**/*.js'], ['build-js']);
-    gulp.watch(['./assets/scss/**/*.scss'], ['build-css']);
-});
+  gulp.watch(['./assets/js/**/*.js'], ['build-js']);
+                               gulp.watch(['./assets/scss/**/*.scss'], ['build-css']);
+                                                              });
 
 /* ----------------------------------------------------------------------------
  * Application server tasks
@@ -130,8 +128,8 @@ gulp.task('server:build', function() {
       });
     for (var l in lines)
       util.log(util.colors.red(
-        'Error (go install): ' + lines[l]
-      ));
+            'Error (go install): ' + lines[l]
+            ));
     notifier.notify({
       title: 'Error (go install)',
       message: lines
@@ -149,62 +147,62 @@ gulp.task('server:spawn', function() {
   //server = child.spawn('go', ['run', 'main.go']);
   reload.reload('/');
 
-	/*
-	server.stdout.on('data', function(data) {
-    var lines = data.toString().split('\n')
-    for (var l in lines)
-      if (lines[l].length)
-        util.log(lines[l]);
-    notifier.notify({
-      title: 'Log (go spawn)',
-      message: lines
-    });
-  });
-	*/
+  /*
+     server.stdout.on('data', function(data) {
+     var lines = data.toString().split('\n')
+     for (var l in lines)
+     if (lines[l].length)
+     util.log(lines[l]);
+     notifier.notify({
+     title: 'Log (go spawn)',
+     message: lines
+     });
+     });
+     */
 
   /* Print errors to stdout */
   server.stderr.on('data', function(data) {
     process.stdout.write(data.toString());
     var lines = data.toString().split('\n')
-    notifier.notify({
-      title: 'Error (go spawn)',
-      message: lines
-    });
+      notifier.notify({
+        title: 'Error (go spawn)',
+        message: lines
+      });
   });
 });
 
 gulp.task('server:watch', function() {
 
   gulp.watch([
-    'views/**/*.html',
-    'config/*.json'
-  ], ['server:spawn']);
+      'views/**/*.html',
+       'config/*.json'
+       ], ['server:spawn']);
 
   gulp.watch([
     './**/*.go',
-  ], sync([
+    ], sync([
     'server:build',
     'server:spawn'
-  ], 'server'));
+    ], 'server'));
 });
 
 /*********************************************************************
- * Build
- *********************************************************************/
+* Build
+*********************************************************************/
 gulp.task('assets:build', ['build-external-js', 'build-css', 'build-js', 'fonts', 'images']);
 gulp.task('build', ['assets:build', 'server:build']);
 
 /*********************************************************************
- * Watchers
- *********************************************************************/
+* Watchers
+*********************************************************************/
 gulp.task('watch', ['clean-build', 'build'], function () {
-    //gulp.watch(['./Scripts/**/*.js', './Styles/**/*.scss'], ['build']);
-	reload.listen();
-	return gulp.start([
-		'assets:watch',
-		'server:watch',
-		'server:spawn'
-	]);
+//gulp.watch(['./Scripts/**/*.js', './Styles/**/*.scss'], ['build']);
+reload.listen();
+return gulp.start([
+    'assets:watch',
+    'server:watch',
+    'server:spawn'
+]);
 });
 
 gulp.task('default', ['build'])

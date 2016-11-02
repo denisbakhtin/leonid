@@ -7,7 +7,6 @@ import (
 
 	"github.com/denisbakhtin/leonid/models"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 )
 
 func ApiUsersGet(c *gin.Context) {
@@ -18,6 +17,11 @@ func ApiUsersGet(c *gin.Context) {
 		c.JSON(500, "Внутренняя ошибка сервера")
 		return
 	}
+	/*
+		log.Printf("%+v\n", users)
+		j, _ := json.Marshal(users)
+		log.Println(string(j))
+	*/
 
 	c.JSON(200, users)
 }
@@ -66,32 +70,30 @@ func ApiUserUpdate(c *gin.Context) {
 	userj := &models.UserJ{}
 
 	if c.BindJSON(userj) == nil {
-		userDB := &models.User{}
-		db.Find(userDB, id)
-		if userDB.ID == 0 {
+		user := &models.User{}
+		db.Find(user, id)
+		if user.ID == 0 {
 			c.JSON(404, "Указанный пользователь не найден")
 			return
 		}
-		user := &models.User{
-			Model:    gorm.Model{ID: userj.ID},
-			Name:     userj.Name,
-			Email:    userj.Email,
-			Password: userj.Password,
-		}
-		if err := user.HashPassword(); err != nil {
-			c.JSON(500, "Ошибка шифрования пароля")
-			return
-		}
 		if strings.TrimSpace(userj.Password) != "" {
+			if err := user.ComparePassword(userj.CurrentPassword); err != nil {
+				c.JSON(http.StatusBadRequest, "Указан неверный текущий пароль")
+				return
+			}
 			if userj.Password != userj.PasswordConfirm {
 				c.JSON(http.StatusBadRequest, "Пароль и подтверждение пароля не совпадают")
 				return
 			}
-			if user.Password != userDB.Password {
-				c.JSON(http.StatusBadRequest, "Указан неверный текущий пароль")
+			user.Password = userj.Password
+			if err := user.HashPassword(); err != nil {
+				c.JSON(500, "Ошибка шифрования пароля")
 				return
 			}
 		}
+
+		user.Name = userj.Name
+		user.Email = userj.Email
 
 		if err := db.Save(user).Error; err != nil {
 			c.JSON(500, fmt.Errorf("Ошибка при сохранении записи: %s", err.Error()))

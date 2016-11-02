@@ -59,12 +59,20 @@ func MainMenu() []MenuItem {
 	//contacts, _ := models.GetPage(7)
 	menu := []MenuItem{
 		MenuItem{
-			URL:   "/reviews",
-			Title: "reviews",
+			URL:   "pages/about",
+			Title: "О компании",
 		},
 		MenuItem{
-			URL:   "/articles",
-			Title: "articles",
+			URL:   "/categories",
+			Title: "Каталог",
+		},
+		MenuItem{
+			URL:   "/pages/pricelist",
+			Title: "Прайс-лист",
+		},
+		MenuItem{
+			URL:   "/pages/job",
+			Title: "Вакансии",
 		},
 	}
 	return menu

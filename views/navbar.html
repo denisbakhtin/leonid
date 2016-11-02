@@ -1,16 +1,4 @@
 {{define "navbar"}}
-<div id="header-top">
-  <a id="logo" href="/">
-    <img src="/public/images/logo.png" />
-    <p id="name" class="pull-right text-success">миобаланс</p>
-    <p class="text-success">Прикладная кинезиология</p>
-  </a>
-  <div id="header-phone">
-    <p class="phone nowrap">999-999-999</p>
-    <p class="hours nowrap">c 9:00 до 21:00</p>
-  </div>
-</div>
-
 <div id="navbar-main" class="full-width navbar navbar-default" role="navigation">
   <div class="navbar-header">
     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -19,42 +7,34 @@
       <span class="icon-bar"></span>
       <span class="icon-bar"></span>
     </button>
+		<a class="navbar-brand" href="/">Вечная память</a>
   </div>
   <div class="navbar-collapse collapse">
     <ul class="nav navbar-nav">
-      {{$active := .Active}}
       {{range mainMenu}}
-      <li class="{{.CssClass}} {{isActive $active .URL}}">
+      <li class="{{.CssClass}}">
         <a href="{{.URL}}">{{.Title}}</a>
       </li>
       {{end}}
-      {{if .ActiveUser}}
+		</ul>
+		<ul class="nav navbar-nav navbar-right">
+      {{if .Authenticated}}
       <li>
-        <a href="/admin"><i class="glyphicon glyphicon-cog indent"></i>Панель управления</a>
+        <a href="/admin"><i class="fa fa-cog"></i>Панель управления</a>
       </li>
       <li>
-        <a href="/logout"><i class="glyphicon glyphicon-log-out indent"></i>Выйти</a>
+        <a href="/logout"><i class="fa fa-sign-out"></i>Выйти</a>
+      </li>
+			{{else}}
+      <li>
+        <a class="btn btn-default" href="/signin"><i class="fa fa-sign-in"></i>Войти</a>
+      </li>
+      <li>
+        <a href="/signup"><i class="fa fa-user"></i>Регистрация</a>
       </li>
       {{end}}
     </ul>
   </div><!--/.nav-collapse -->
 </div>
 
-<div id="header-bottom" class="row full-width">
-  <div class="col-sm-4 col-xs-12">
-    <i class="glyphicon glyphicon-plus"></i>
-    <p class="strong">Высокая эффективность</p>
-    <p>Сотни вылеченных пациентов и положительных отзывов</p>
-  </div>
-  <div class="col-sm-4 col-xs-12">
-    <i class="glyphicon glyphicon-leaf"></i>
-    <p class="strong">Мягкое лечение</p>
-    <p>Применяем передовые техники лечения и минимум медикаментов</p>
-  </div>
-  <div class="col-sm-4 col-xs-12">
-    <i class="glyphicon glyphicon-gift"></i>
-    <p class="strong">Акция!</p>
-    <p>Первичный приём <span class="strike-through">1000</span> 0&nbsp;руб. При оплате курса лечения скидка <span class="strong">20%</span></p>
-  </div>
-</div>
 {{end}}
