@@ -47,7 +47,7 @@ UserComponent.controller = function () {
     ctrl.vm.model.update(ctrl.vm.record)
       .then(
           function(success) {ctrl.message('Изменения успешно сохранены');},
-          function(error) {ctrl.error(parseError(error));}
+          function(error) {ctrl.error(funcs.parseError(error));}
           ).then(function() {ctrl.updating(false); m.redraw()});
   }
   ctrl.create = function() {
@@ -59,7 +59,7 @@ UserComponent.controller = function () {
     ctrl.vm.model.create(ctrl.vm.record).then(
         function(success) { m.route("/users");},
         function(error) {
-          ctrl.error(parseError(error));
+          ctrl.error(funcs.parseError(error));
           ctrl.updating(false); 
           m.redraw();
         }
@@ -89,11 +89,11 @@ UserComponent.view = function (ctrl) {
         : "",
         m('.form-group', [
           m('label', 'Новый пароль'),
-          m('input.form-control[type=password]', {placeholder: "Оставьте пустым, чтобы сохранить текущий пароль", value: ctrl.vm.record().password(), onchange: m.withAttr("value", ctrl.vm.record().password)})
+          m('input.form-control[type=password]', {value: ctrl.vm.record().password(), onchange: m.withAttr("value", ctrl.vm.record().password)})
         ]),
         m('.form-group', [
           m('label', 'Подтверждение пароля'),
-          m('input.form-control[type=password]', {placeholder: "Оставьте пустым, чтобы сохранить текущий пароль", value: ctrl.vm.record().password_confirm(), onchange: m.withAttr("value", ctrl.vm.record().password_confirm)})
+          m('input.form-control[type=password]', {value: ctrl.vm.record().password_confirm(), onchange: m.withAttr("value", ctrl.vm.record().password_confirm)})
         ]),
         (ctrl.message()) ? m('.action-message.animated.fadeInRight', ctrl.message()) : "",
         (ctrl.error()) ? m('.action-alert.animated.fadeInRight', ctrl.error()) : "",

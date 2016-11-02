@@ -119,4 +119,4 @@ ProductsComponent.view = function (ctrl) {
             ]);
 }
 
-module.exports = PagesComponent;
+module.exports = ProductsComponent;

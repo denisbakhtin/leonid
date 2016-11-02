@@ -123,3 +123,9 @@ a, button {
 .btn + .btn {
 	margin-left: 0.5em;
 }
+label + input[type="checkbox"] {
+  margin-left: 0.5em;
+}
+textarea {
+  min-height: 20em;
+}

@@ -1,5 +1,30 @@
 ﻿'use strict';
 
+exports.parseError = function(errstr) {
+  try {
+    return joinErrors(JSON.parse(errstr));
+  }
+  catch(err) {
+    return errstr;
+  }
+}
+
+var joinErrors = function(errors) {
+  if (typeof(errors) === "object") {
+    let errstr = "";
+    for (let key in errors) {
+      if (typeof(errors[key]) === "object") {
+        for (let ekey in errors[key]) {
+          errstr += errors[key][ekey] + ". ";
+        }
+      }
+    }
+    return errstr;
+  } else 
+    return errors;
+}
+
+
 exports.pages = function(arlen, pagesize) {
   return Array(Math.floor(arlen/pagesize) + ((arlen%pagesize > 0) ? 1 : 0)).fill(0); //return empty array of pages
 }

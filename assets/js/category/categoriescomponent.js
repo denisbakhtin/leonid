@@ -44,7 +44,7 @@ CategoriesComponent.controller = function () {
             ctrl.editingid('');
             ctrl.vm.list()[ctrl.vm.list().indexOf(row)] = ctrl.record; //update current row in grid
           },
-          function(error) {ctrl.error(parseError(error))}
+          function(error) {ctrl.error(funcs.parseError(error))}
           ).then(function() {ctrl.updating(false); m.redraw()});
   }
   ctrl.startcreate = function() {
@@ -64,7 +64,7 @@ CategoriesComponent.controller = function () {
           })
         },
         function(error) {
-          ctrl.error(parseError(error));
+          ctrl.error(funcs.parseError(error));
           ctrl.updating(false); 
           m.redraw();
         }

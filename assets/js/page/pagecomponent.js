@@ -48,7 +48,7 @@ PageComponent.controller = function () {
     ctrl.vm.model.update(ctrl.vm.record)
       .then(
           function(success) {ctrl.message('Изменения успешно сохранены');},
-          function(error) {ctrl.error(parseError(error));}
+          function(error) {ctrl.error(funcs.parseError(error));}
           ).then(function() {ctrl.updating(false); m.redraw()});
   }
   ctrl.create = function() {
@@ -60,7 +60,7 @@ PageComponent.controller = function () {
     ctrl.vm.model.create(ctrl.vm.record).then(
         function(success) {m.route("/pages");},
         function(error) {
-          ctrl.error(parseError(error));
+          ctrl.error(funcs.parseError(error));
           ctrl.updating(false); 
           m.redraw();
         }
@@ -88,7 +88,7 @@ PageComponent.view = function (ctrl) {
         ]),
         m('.form-group', [
           m('label', 'Опубликовать'),
-          m('input[type=checkbox]', {checked: ctrl.vm.record().published(), onclick: m.withAttr("value", ctrl.vm.record().published)})
+          m('input[type=checkbox]', {checked: ctrl.vm.record().published(), onclick: m.withAttr("checked", ctrl.vm.record().published)})
         ]),
         (ctrl.message()) ? m('.action-message.animated.fadeInRight', ctrl.message()) : "",
         (ctrl.error()) ? m('.action-alert.animated.fadeInRight', ctrl.error()) : "",

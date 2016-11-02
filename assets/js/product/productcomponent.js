@@ -34,7 +34,7 @@ ProductPage.controller = function () {
     ctrl.vm.model.update(ctrl.vm.record)
       .then(
           function(success) { ctrl.message('Изменения успешно сохранены');},
-          function(error) { ctrl.error(parseError(error))}
+          function(error) { ctrl.error(funcs.parseError(error))}
           ).then(function() {ctrl.updating(false); m.redraw()})
   }
   ctrl.create = function() {
@@ -43,7 +43,7 @@ ProductPage.controller = function () {
     ctrl.vm.model.create(ctrl.vm.record).then(
         function(success) { m.route("/products");},
         function(error) {
-          ctrl.error(parseError(error));
+          ctrl.error(funcs.parseError(error));
           ctrl.updating(false); 
           m.redraw();
         }
@@ -54,7 +54,7 @@ ProductPage.controller = function () {
     ctrl.vm.model.delete(ctrl.vm.record.id()).then(
         function(success) { m.route("/products");},
         function(error) {
-          ctrl.error(parseError(error));
+          ctrl.error(funcs.parseError(error));
           ctrl.updating(false);
           m.redraw();
         }

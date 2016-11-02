@@ -6,7 +6,7 @@ var Model = require("../helpers/model");
 var Spinner = require("../layout/spinner");
 var PageSizeSelector = require("../layout/pagesizeselector");
 var Paginator = require("../layout/paginator");
-var User = require("./usercomponent");
+var User = require("./user");
 
 var UsersComponent = {};
 UsersComponent.vm = {};
@@ -24,7 +24,7 @@ UsersComponent.controller = function () {
   ctrl.updating = m.prop(true); //waiting for data update in background
   ctrl.vm.list.then(function() {ctrl.updating(false); m.redraw();}); //hide spinner and redraw after data arrive 
   ctrl.title = document.title = "Список пользователей";
-  ctrl.pagesize = m.prop(getCookie("pagesize") || 10); //number of items per page
+  ctrl.pagesize = m.prop(funcs.getCookie("pagesize") || 10); //number of items per page
   ctrl.currentpage = m.prop(0); //current page, starting with 0
   ctrl.error = m.prop('');
 
@@ -74,7 +74,7 @@ UsersComponent.view = function (ctrl) {
   return m("#userlist", [
       m("h1", ctrl.title),
       m('div', [
-        m('table.table.table-striped.animated.fadeIn', sorts(ctrl.vm.list()), [
+        m('table.table.table-striped.animated.fadeIn', funcs.sorts(ctrl.vm.list()), [
           m('thead', 
             m('tr', [
               m('th.clickable[data-sort-by=email]', 'Эл. почта'),

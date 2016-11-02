@@ -1,14 +1,10 @@
 package models
 
-import (
-	"fmt"
-
-	"github.com/jinzhu/gorm"
-)
+import "fmt"
 
 //Product type contains product info
 type Product struct {
-	gorm.Model
+	ID        uint   `json:"id"`
 	Name      string `json:"name" binding:"required"`
 	Slug      string `json:"slug"`
 	Content   string `json:"content"`

@@ -70,13 +70,6 @@ func SignUpPost(c *gin.Context) {
 			c.Redirect(303, "/signup")
 			return
 		}
-		//create user
-		if err := user.HashPassword(); err != nil {
-			session.AddFlash("Ошибка регистрации пользователя, повторите попытку или сообщите администратору.")
-			session.Save()
-			c.Redirect(303, "/signup")
-			return
-		}
 		if err := db.Create(user).Error; err != nil {
 			session.AddFlash("Ошибка регистрации пользователя, повторите попытку или сообщите администратору.")
 			session.Save()

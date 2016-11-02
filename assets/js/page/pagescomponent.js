@@ -8,22 +8,22 @@ var PageSizeSelector = require("../layout/pagesizeselector");
 var Paginator = require("../layout/paginator");
 var Page = require("./page");
 
-var pagesComponent = {};
-pagesComponent.vm = {};
-pagesComponent.vm.init = function(args) {
+var PagesComponent = {};
+PagesComponent.vm = {};
+PagesComponent.vm.init = function(args) {
   args = args || {};
   var vm = this;
   vm.model = new Model({url: "/api/pages", type: Page});
   vm.list = vm.model.index();
   return this;
 }
-pagesComponent.controller = function () {
+PagesComponent.controller = function () {
   var ctrl = this;
 
-  ctrl.vm = pagesComponent.vm.init();
+  ctrl.vm = PagesComponent.vm.init();
   ctrl.updating = m.prop(true); //waiting for data update in background
   ctrl.vm.list.then(function() {ctrl.updating(false); m.redraw();}); //hide spinner and redraw after data arrive 
-  ctrl.title = document.title = "Список пользователей";
+  ctrl.title = document.title = "Список страниц";
   ctrl.pagesize = m.prop(funcs.getCookie("pagesize") || 10); //number of items per page
   ctrl.currentpage = m.prop(0); //current page, starting with 0
   ctrl.error = m.prop('');
@@ -55,13 +55,14 @@ pagesComponent.controller = function () {
         );
   }
 }
-pagesComponent.view = function (ctrl) {
+PagesComponent.view = function (ctrl) {
 
   var showRowTemplate = function(data) {
     return m('tr.clickable', {onclick: ctrl.edit.bind(this, data)},
         [
-        m('td', data.email()),
-        m('td.shrink', data.name()),
+        m('td', data.name()),
+        m('td.shrink', data.slug()),
+        m('td.shrink', data.published() ? m('i.fa.fa-check') : m('i.fa.fa-times')),
         m('td.shrink.actions',[
           m('button.btn.btn-sm.btn-default[title=Редактировать]', {onclick: ctrl.edit.bind(this, data)}, m('i.fa.fa-pencil')),
           m('button.btn.btn-sm.btn-danger[title=Удалить]', {onclick: ctrl.delete.bind(this, data)}, m('i.fa.fa-remove'))
@@ -74,11 +75,12 @@ pagesComponent.view = function (ctrl) {
   return m("#pagescomponent", [
       m("h1", ctrl.title),
       m('div', [
-        m('table.table.table-striped.animated.fadeIn', sorts(ctrl.vm.list()), [
+        m('table.table.table-striped.animated.fadeIn', funcs.sorts(ctrl.vm.list()), [
           m('thead', 
             m('tr', [
-              m('th.clickable[data-sort-by=email]', 'Эл. почта'),
-              m('th.shrink.clickable[data-sort-by=name]', 'Имя'),
+              m('th.clickable[data-sort-by=name]', 'Заголовок'),
+              m('th.shrink.clickable[data-sort-by=slug]', 'Кор. адрес'),
+              m('th.shrink.clickable[data-sort-by=published]', 'Опубликовано'),
               m('th.shrink.actions', '#')
             ])
            ),
@@ -104,7 +106,7 @@ pagesComponent.view = function (ctrl) {
           m('.actions', [
               m('button.btn.btn-primary', { onclick: ctrl.create }, [
                 m('i.fa.fa-plus'),
-                m('span', 'Добавить пользователя')
+                m('span', 'Добавить страницу')
               ]),
               m('.pull-right', m.component(PageSizeSelector, ctrl.pagesize))
           ]),

@@ -49,8 +49,10 @@ func ApiUserCreate(c *gin.Context) {
 			Name:     userj.Name,
 			Password: userj.Password,
 		}
-		if err := user.HashPassword(); err != nil {
-			c.JSON(500, "Ошибка шифрования пароля")
+		userDB := &models.User{}
+		db.Where("lower(email) = ?", user.Email).First(userDB)
+		if userDB.ID != 0 {
+			c.JSON(http.StatusBadRequest, fmt.Sprintf("Ошибка! Пользователь с таким адресом уже существует"))
 			return
 		}
 		if err := db.Create(user).Error; err != nil {

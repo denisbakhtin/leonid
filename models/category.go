@@ -1,10 +1,8 @@
 package models
 
-import "github.com/jinzhu/gorm"
-
 // type contains category info
 type Category struct {
-	gorm.Model
+	ID        uint
 	Name      string
 	Slug      string
 	Content   string

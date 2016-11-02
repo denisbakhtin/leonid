@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/denisbakhtin/leonid/helpers"
 	"github.com/denisbakhtin/leonid/models"
 	"github.com/gin-gonic/gin"
 )
 
 func PageGet(c *gin.Context) {
 	db := models.GetDB()
+	H := helpers.H(c)
 
 	slug := c.Param("slug")
 	page := &models.Page{}
@@ -24,11 +26,9 @@ func PageGet(c *gin.Context) {
 		return
 	}
 
-	c.HTML(200, "pages/show", gin.H{
-		"Page":   page,
-		"Title":  page.Name,
-		"Active": page.URL(),
-	})
+	H["Title"] = page.Name
+	H["Page"] = page
+	c.HTML(200, "pages/show", H)
 
 }
 

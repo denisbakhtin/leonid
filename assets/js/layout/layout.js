@@ -36,31 +36,26 @@ function layout(component) {
       ])
         ]);
 
-        var navlink = function (url, title) {
-          return m('li', { class: (m.route().includes(url)) ? "active" : "" }, m('a', { href: url, config: m.route }, title));
-        }
+  var navlink = function (url, title) {
+    return m('li', { class: (m.route().includes(url)) ? "active" : "" }, m('a', { href: url, config: m.route }, title));
+  }
   var sidebar = [
     m('.panel.panel-default', [
         m('ul.nav nav-pills nav-stacked', [
           navlink("/categories", "Категории товаров"),
           navlink("/products", "Товары"),
+          navlink("/pages", "Страницы"),
           navlink("/users", "Пользователи"),
         ])
     ])
   ];
 
-  var footer = [
-  m('footer#footer', [
-      m('div', "Подвал сайта")
-  ])
-  ];
   return [
-  header,
-  m("#content-wrapper", [
-      m('#sidebar', sidebar),
-      m('#content', m.component(component))
-  ]),
-  footer
+    header,
+    m("#content-wrapper", [
+        m('#sidebar', sidebar),
+        m('#content', m.component(component))
+    ]),
   ];
 };
 

@@ -3,13 +3,12 @@ package models
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
 
 //User type contains user info
 type User struct {
-	gorm.Model
+	ID       uint   `json:"id"`
 	Email    string `json:"email" gorm:"unique_index"`
 	Name     string `json:"name"`
 	Password string `json:"-"`
@@ -17,7 +16,7 @@ type User struct {
 
 //UserJ type contains user info
 type UserJ struct {
-	gorm.Model
+	ID              uint   `json:"id"`
 	Email           string `json:"email" binding:"required"`
 	Name            string `json:"name" binding:"required"`
 	CurrentPassword string `json:"current_password"`
@@ -63,4 +62,8 @@ func (user *User) BeforeDelete() (err error) {
 		return fmt.Errorf("Невозможно удалить последнего пользователя")
 	}
 	return
+}
+
+func (user *User) BeforeCreate() (err error) {
+	return user.HashPassword()
 }

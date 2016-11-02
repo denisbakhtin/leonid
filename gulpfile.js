@@ -3,11 +3,10 @@ var gulp = require('gulp'),
     concat = require('gulp-concat'),
     cssmin = require('gulp-cssmin'),
     uglify = require('gulp-uglify'),
-    gulpif = require('gulp-if'),
     gutil = require('gulp-util'),
     sass = require('gulp-sass'),
     autoprefixer = require('gulp-autoprefixer'),
-    rimraf = require('rimraf'),
+    clean = require('gulp-clean'),
     source = require('vinyl-source-stream'),
     buffer = require('vinyl-buffer'),
     browserify = require('browserify'),
@@ -53,17 +52,17 @@ var paths = {
    *********************************************************************/
 
 // Clean (optional)
-gulp.task('clean-css', function (cb) {
-  return rimraf(paths.cssDest, cb);
+gulp.task('clean-css', function () {
+  return gulp.src(paths.cssDest, {read: false}).pipe(clean());
 });
-gulp.task('clean-js', function (cb) {
-  return rimraf(paths.jsDest, cb);
+gulp.task('clean-js', function () {
+  return gulp.src(paths.jsDest, {read: false}).pipe(clean());
 });
-gulp.task('clean-fonts', function (cb) {
-  return rimraf(paths.fontsDest, cb);
+gulp.task('clean-fonts', function () {
+  return gulp.src(paths.fontsDest, {read: false}).pipe(clean());
 });
 gulp.task('clean-images', function (cb) {
-  return rimraf(paths.imagesDest, cb);
+  return gulp.src(paths.imagesDest, {read: false}).pipe(clean());
 });
 
 gulp.task('clean-build', ['clean-css', 'clean-js', 'clean-images']);
