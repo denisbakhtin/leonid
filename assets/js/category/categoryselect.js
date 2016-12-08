@@ -13,7 +13,7 @@ CategorySelect.vm = {};
 CategorySelect.vm.init = function(args) {
   args = args || {};
   var vm = this;
-  vm.list = mrequest({ method: "GET", url: "/api/categories", type: Category });
+  vm.list = funcs.mrequest({ method: "GET", url: "/api/categories", type: Category });
   return this;
 }
 

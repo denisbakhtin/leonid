@@ -24,14 +24,18 @@ ProductsComponent.controller = function () {
   ctrl.updating = m.prop(true); //waiting for data update in background
   ctrl.vm.list.then(function() {ctrl.updating(false); m.redraw();}); //hide spinner and redraw after data arrive 
   ctrl.title = document.title = "Список товаров";
-  ctrl.pagesize = m.prop(getCookie("pagesize") || 10); //number of items per page
+  ctrl.pagesize = m.prop(funcs.getCookie("pagesize") || 10); //number of items per page
   ctrl.currentpage = m.prop(0); //current page, starting with 0
   ctrl.error = m.prop('');
 
-  ctrl.startedit = function(row) {
-    console.log('Use m.route to redirect');
+  ctrl.show = function(row) {
+    event.stopPropagation(); //prevent tr.onclick trigger
+    window.location = "/product/" + row.id() + "-" + row.slug();
   }
-  ctrl.startcreate = function(row) {
+  ctrl.edit = function(row) {
+    m.route("/products/"+row.id());
+  }
+  ctrl.create = function(row) {
     m.route("/products/new");
   }
   ctrl.delete = function(row) {
@@ -58,15 +62,15 @@ ProductsComponent.controller = function () {
 ProductsComponent.view = function (ctrl) {
 
   var showRowTemplate = function(data) {
-    return m('tr.clickable', {onclick: ctrl.startedit.bind(this, data)},
+    return m('tr.clickable', {onclick: ctrl.edit.bind(this, data)},
         [
-        m('td.shrink', data.id()),
         m('td.shrink', (data.image()) ? m('img.image-preview.img-responsive', {src: data.image()}) : ""),
         m('td', data.name()),
-        m('td.shrink', data.categoryname()),
-        m('td.shrink.text-center', data.ispublished() ? m('i.fa.fa-check') : m('i.fa.fa-times')),
+        m('td.shrink', data.category_name()),
+        m('td.shrink.text-center', data.published() ? m('i.fa.fa-check') : m('i.fa.fa-times')),
         m('td.shrink.actions',[
-          m('button.btn.btn-sm.btn-default[title=Редактировать]', {onclick: ctrl.startedit.bind(this, data)}, m('i.fa.fa-pencil')),
+          m('button.btn.btn-sm.btn-default[title=Редактировать]', {onclick: ctrl.edit.bind(this, data)}, m('i.fa.fa-pencil')),
+          m('button.btn.btn-sm.btn-default[title=Просмотр]', {onclick: ctrl.show.bind(this, data)}, m('i.fa.fa-eye')),
           m('button.btn.btn-sm.btn-danger[title=Удалить]', {onclick: ctrl.delete.bind(this, data)}, m('i.fa.fa-remove'))
         ])
         ]
@@ -77,14 +81,13 @@ ProductsComponent.view = function (ctrl) {
   return m("#productlist", [
       m("h1", ctrl.title),
       m('div', [
-        m('table.table.table-striped.animated.fadeIn', sorts(ctrl.vm.list()), [
+        m('table.table.table-striped.animated.fadeIn', funcs.sorts(ctrl.vm.list()), [
           m('thead', 
             m('tr', [
-              m('th.shrink.clickable[data-sort-by=id]', '№'),
               m('th.clickable[data-sort-by=image]', 'Фото'),
               m('th.clickable[data-sort-by=name]', 'Название'),
-              m('th.clickable[data-sort-by=categoryname]', 'Категория'),
-              m('th.shrink.clickable[data-sort-by=ispublished]', 'Опубликована'),
+              m('th.clickable[data-sort-by=category_name]', 'Категория'),
+              m('th.shrink.clickable[data-sort-by=published]', 'Опубликована'),
               m('th.shrink.actions', '#')
             ])
            ),
@@ -108,7 +111,7 @@ ProductsComponent.view = function (ctrl) {
            ), //tbody
           ]), //table
           m('.actions', [
-              m('button.btn.btn-primary', { onclick: ctrl.startcreate }, [
+              m('button.btn.btn-primary', { onclick: ctrl.create }, [
                 m('i.fa.fa-plus'),
                 m('span', 'Добавить товар')
               ]),

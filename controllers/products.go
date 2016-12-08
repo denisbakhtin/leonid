@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/denisbakhtin/leonid/models"
 	"github.com/gin-gonic/gin"
@@ -10,33 +11,39 @@ import (
 
 func ProductGet(c *gin.Context) {
 	db := models.GetDB()
+	H := H(c)
 
-	slug := c.Param("slug")
+	idslug := strings.SplitN(c.Param("idslug"), "-", 2)
 	product := &models.Product{}
 
-	if err := db.Where("slug = ?", slug).First(product).Error; err != nil {
+	if err := db.First(product, idslug[0]).Error; err != nil {
 		c.HTML(500, "errors/500", gin.H{})
 		return
 	}
 
-	if !product.Published {
+	if product.ID == 0 || !product.Published {
 		c.HTML(404, "errors/404", gin.H{})
 		return
 	}
 
-	c.HTML(200, "products/show", gin.H{
-		"Product": product,
-		"Title":   product.Name,
-		"Active":  product.URL(),
-	})
+	if product.Slug != idslug[1] {
+		c.Redirect(303, product.URL())
+		return
+	}
 
+	H["Product"] = product
+	H["Title"] = product.Name
+	H["Active"] = product.URL()
+	H["MetaDescription"] = product.MetaDescription
+	H["MetaKeywords"] = product.MetaKeywords
+	c.HTML(200, "products/show", H)
 }
 
 func ApiProductsGet(c *gin.Context) {
 	db := models.GetDB()
 
 	var products []models.Product
-	if err := db.Find(&products).Error; err != nil {
+	if err := db.Preload("Category").Order("id desc").Find(&products).Error; err != nil {
 		c.JSON(500, "Внутренняя ошибка сервера")
 		return
 	}
@@ -61,7 +68,7 @@ func ApiProductGet(c *gin.Context) {
 func ApiProductCreate(c *gin.Context) {
 	db := models.GetDB()
 	product := &models.Product{}
-	if c.BindJSON(product) == nil {
+	if err := c.BindJSON(product); err == nil {
 		if err := db.Create(product).Error; err != nil {
 			c.JSON(http.StatusBadRequest, err.Error())
 			return
@@ -69,7 +76,7 @@ func ApiProductCreate(c *gin.Context) {
 		c.JSON(http.StatusCreated, product)
 
 	} else {
-		c.JSON(http.StatusBadRequest, "Внимательно проверьте заполнение всех полей")
+		c.JSON(http.StatusBadRequest, "Внимательно проверьте заполнение всех полей"+err.Error())
 	}
 }
 

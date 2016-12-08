@@ -111,8 +111,8 @@ gulp.task('build-css', function () {
 gulp.task('assets:build', ['build-css', 'build-js']);
 gulp.task('assets:watch', function () {
   gulp.watch(['./assets/js/**/*.js'], ['build-js']);
-                               gulp.watch(['./assets/scss/**/*.scss'], ['build-css']);
-                                                              });
+  gulp.watch(['./assets/scss/**/*.scss'], ['build-css']);
+});
 
 /* ----------------------------------------------------------------------------
  * Application server tasks
@@ -142,8 +142,9 @@ gulp.task('server:spawn', function() {
     server.kill();
 
   /* Spawn application server */
-  server = child.spawn('leonid');
-  //server = child.spawn('go', ['run', 'main.go']);
+  //server = child.spawn('leonid');
+  server = child.spawn('go', ['run', 'main.go']);
+  console.log(server.pid);
   reload.reload('/');
 
   /*
@@ -160,6 +161,7 @@ gulp.task('server:spawn', function() {
      */
 
   /* Print errors to stdout */
+  /*
   server.stderr.on('data', function(data) {
     process.stdout.write(data.toString());
     var lines = data.toString().split('\n')
@@ -168,6 +170,7 @@ gulp.task('server:spawn', function() {
         message: lines
       });
   });
+  */
 });
 
 gulp.task('server:watch', function() {
@@ -180,7 +183,7 @@ gulp.task('server:watch', function() {
   gulp.watch([
     './**/*.go',
     ], sync([
-    'server:build',
+    //'server:build',
     'server:spawn'
     ], 'server'));
 });
@@ -189,7 +192,7 @@ gulp.task('server:watch', function() {
 * Build
 *********************************************************************/
 gulp.task('assets:build', ['build-external-js', 'build-css', 'build-js', 'fonts', 'images']);
-gulp.task('build', ['assets:build', 'server:build']);
+gulp.task('build', ['assets:build'/*, 'server:build'*/]);
 
 /*********************************************************************
 * Watchers
@@ -198,9 +201,9 @@ gulp.task('watch', ['clean-build', 'build'], function () {
 //gulp.watch(['./Scripts/**/*.js', './Styles/**/*.scss'], ['build']);
 reload.listen();
 return gulp.start([
-    'assets:watch',
-    'server:watch',
-    'server:spawn'
+    'assets:watch'
+    //'server:watch',
+    //'server:spawn'
 ]);
 });
 

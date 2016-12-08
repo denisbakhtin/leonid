@@ -34,6 +34,10 @@ PagesComponent.controller = function () {
   ctrl.create = function(row) {
     m.route("/pages/new");
   }
+  ctrl.show = function(row) {
+    event.stopPropagation(); //prevent tr.onclick trigger
+    window.location = "/page/" + row.id() + "-" + row.slug();
+  }
   ctrl.delete = function(row) {
     ctrl.updating(true);
     event.stopPropagation(); //prevent tr.onclick trigger
@@ -61,10 +65,10 @@ PagesComponent.view = function (ctrl) {
     return m('tr.clickable', {onclick: ctrl.edit.bind(this, data)},
         [
         m('td', data.name()),
-        m('td.shrink', data.slug()),
         m('td.shrink', data.published() ? m('i.fa.fa-check') : m('i.fa.fa-times')),
         m('td.shrink.actions',[
           m('button.btn.btn-sm.btn-default[title=Редактировать]', {onclick: ctrl.edit.bind(this, data)}, m('i.fa.fa-pencil')),
+          m('button.btn.btn-sm.btn-default[title=Просмотр]', {onclick: ctrl.show.bind(this, data)}, m('i.fa.fa-eye')),
           m('button.btn.btn-sm.btn-danger[title=Удалить]', {onclick: ctrl.delete.bind(this, data)}, m('i.fa.fa-remove'))
         ])
         ]
@@ -79,7 +83,6 @@ PagesComponent.view = function (ctrl) {
           m('thead', 
             m('tr', [
               m('th.clickable[data-sort-by=name]', 'Заголовок'),
-              m('th.shrink.clickable[data-sort-by=slug]', 'Кор. адрес'),
               m('th.shrink.clickable[data-sort-by=published]', 'Опубликовано'),
               m('th.shrink.actions', '#')
             ])

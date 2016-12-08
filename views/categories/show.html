@@ -1,0 +1,17 @@
+{{define "categories/show"}}
+{{template "header" .}}
+{{template "navbar" .}}
+<div id="category" role="main">
+  <div class="content">
+    <h1>
+      {{.Category.Name}}
+      {{if .Authenticated}}
+      <a class="btn btn-primary" href="{{.Category.EditURL}}">Редактировать категорию</a>
+      {{end}}
+    </h1>
+    {{.Category.HTMLContent}}
+  </div>
+</div>
+
+{{template "footer" .}}
+{{end}}

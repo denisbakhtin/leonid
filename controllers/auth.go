@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/denisbakhtin/leonid/helpers"
 	"github.com/denisbakhtin/leonid/models"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -12,7 +11,7 @@ import (
 
 func SignInGet(c *gin.Context) {
 	session := sessions.Default(c)
-	H := helpers.H(c)
+	H := H(c)
 	H["Title"] = "Вход в систему"
 	session.Save()
 	c.HTML(http.StatusOK, "auth/signin", H)
@@ -46,7 +45,7 @@ func SignInPost(c *gin.Context) {
 
 func SignUpGet(c *gin.Context) {
 	session := sessions.Default(c)
-	H := helpers.H(c)
+	H := H(c)
 	H["Title"] = "Регистрация в системе"
 	session.Save()
 	c.HTML(200, "auth/signup", H)

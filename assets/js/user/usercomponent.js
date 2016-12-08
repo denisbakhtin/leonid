@@ -44,7 +44,7 @@ UserComponent.controller = function () {
     m.redraw();
     ctrl.message('');
     ctrl.error('');
-    ctrl.vm.model.update(ctrl.vm.record)
+    ctrl.vm.model.update(ctrl.vm.record())
       .then(
           function(success) {ctrl.message('Изменения успешно сохранены');},
           function(error) {ctrl.error(funcs.parseError(error));}
@@ -109,8 +109,8 @@ UserComponent.view = function (ctrl) {
               m('span', 'Сохранить')
             ]),
             ],
-            m('button.btn.btn-warning', { onclick: ctrl.cancel }, [
-              m('i.fa.fa-chevron-left'),
+            m('button.btn.btn-danger', { onclick: ctrl.cancel }, [
+              m('i.fa.fa-times'),
               m('span', 'Отмена')
             ])
         ])

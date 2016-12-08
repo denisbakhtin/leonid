@@ -10400,3 +10400,44 @@ label + input[type="checkbox"] {
 
 textarea {
   min-height: 20em; }
+
+.editor .actions {
+  margin-bottom: 10px; }
+  .editor .actions .btn-group {
+    margin-right: 10px; }
+  .editor .actions .btn {
+    display: inline-block;
+    min-width: 30px;
+    text-align: center;
+    background-image: -webkit-linear-gradient(top, #fff 0, #e0e0e0 100%);
+    background-image: linear-gradient(to bottom, #fff 0, #e0e0e0 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe0e0e0', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+    background-repeat: repeat-x;
+    border-color: #dbdbdb;
+    text-shadow: 0 1px 0 #fff;
+    border-color: #ccc; }
+    .editor .actions .btn:hover {
+      background-color: #e0e0e0;
+      background-position: 0 -15px; }
+    .editor .actions .btn .fa {
+      margin-right: 0; }
+
+.editor .editor-area {
+  height: auto;
+  min-height: 20em; }
+  .editor .editor-area img {
+    max-width: 200px;
+    height: auto; }
+  .editor .editor-area p:empty {
+    display: block;
+    height: 1em; }
+
+.editor textarea.editor-area {
+  background: #eee; }
+
+.modal {
+  top: 50%;
+  margin-top: -150px; }
+  .modal.shown {
+    display: block; }

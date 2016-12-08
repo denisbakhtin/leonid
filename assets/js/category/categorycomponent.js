@@ -6,39 +6,38 @@ var Model = require("../helpers/model");
 var Spinner = require("../layout/spinner");
 var PageSizeSelector = require("../layout/pagesizeselector");
 var Paginator = require("../layout/paginator");
-var CategorySelect = require("../category/categoryselect");
-var Product = require("./product");
+var Category = require("./category");
 var Editor = require('../editor/editorcomponent');
 
-var ProductComponent = {};
-ProductComponent.vm = {};
-ProductComponent.vm.init = function() {
+var CategoryComponent = {};
+CategoryComponent.vm = {};
+CategoryComponent.vm.init = function() {
   var vm = this;
-  vm.model = new Model({url: "/api/products", type: Product});
+  vm.model = new Model({url: "/api/categories", type: Category});
   if (m.route.param("id") == "new") {
-    vm.record = m.prop(new Product());
+    vm.record = m.prop(new Category());
   } else {
     vm.record =  vm.model.get(m.route.param("id"));
   }
   return this;
 }
-ProductComponent.controller = function () {
+CategoryComponent.controller = function () {
   var ctrl = this;
 
-  ctrl.vm = ProductComponent.vm.init();
+  ctrl.vm = CategoryComponent.vm.init();
   if (m.route.param("id") == "new") {
     ctrl.updating = m.prop(false);
-    ctrl.title = document.title = "Создание товара";
+    ctrl.title = document.title = "Создание категории";
   } else {
     ctrl.updating = m.prop(true); //waiting for data update in background
     ctrl.vm.record.then(function() {ctrl.updating(false); m.redraw();}); //hide spinner and redraw after data arrive 
-    ctrl.title = document.title = "Карточка товара";
+    ctrl.title = document.title = "Карточка категории";
   }
   ctrl.error = m.prop('');
   ctrl.message = m.prop(''); //notifications
 
   ctrl.cancel = function() {
-    m.route("/products");
+    m.route("/categories");
   }
   ctrl.update = function() {
     event.preventDefault();
@@ -59,7 +58,7 @@ ProductComponent.controller = function () {
     ctrl.message('');
     ctrl.error('');
     ctrl.vm.model.create(ctrl.vm.record).then(
-        function(success) {m.route("/products");},
+        function(success) {m.route("/categories");},
         function(error) {
           ctrl.error(funcs.parseError(error));
           ctrl.updating(false); 
@@ -67,10 +66,10 @@ ProductComponent.controller = function () {
         });
   }
 }
-ProductComponent.view = function (ctrl) {
+CategoryComponent.view = function (ctrl) {
 
   //complete view
-  return m("#productcomponent", [
+  return m("#categorycomponent", [
       m("h1", ctrl.title),
       ctrl.vm.record()
       ? m('form.animated.fadeIn', [
@@ -78,21 +77,8 @@ ProductComponent.view = function (ctrl) {
           m('label', 'Название'),
           m('input.form-control', {value: ctrl.vm.record().name(), onchange: m.withAttr("value", ctrl.vm.record().name)})
         ]),
-        m('.row', [
-          m('.form-group col-sm-6', [
-            m('label', 'Категория'),
-            m.component(CategorySelect, {value: ctrl.vm.record().category_id, error: ctrl.error}),
-          ]),
-          m('.form-group col-sm-6', [
-            m('label', 'Цена'),
-            m('.input-group', [
-              m('input.form-control[type=number][step=0.01]', {value: ctrl.vm.record().price(), onchange: m.withAttr("value", ctrl.vm.record().price)}),
-              m('span.input-group-addon', 'р.')
-            ])
-          ]),
-        ]),
         m('.form-group', [
-          m('label', 'Содержание'),
+          m('label', 'Описание'),
           m.component(Editor, {text: ctrl.vm.record().content})
         ]),
         m('.form-group', [
@@ -131,4 +117,4 @@ ProductComponent.view = function (ctrl) {
     ]);
 }
 
-module.exports = ProductComponent;
+module.exports = CategoryComponent;

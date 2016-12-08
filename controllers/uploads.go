@@ -3,9 +3,7 @@ package controllers
 import (
 	"fmt"
 	"io"
-	"log"
 	"mime/multipart"
-	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -13,40 +11,30 @@ import (
 	"time"
 
 	"github.com/denisbakhtin/leonid/system"
+	"github.com/gin-gonic/gin"
 )
 
-//CkUpload handles POST /admin/ckupload route
-func CkUpload(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-
-		err := r.ParseMultipartForm(32 << 20)
-		if err != nil {
-			log.Printf("ERROR: %s\n", err)
-			http.Error(w, err.Error(), 500)
-			return
-		}
-		mpartFile, mpartHeader, err := r.FormFile("upload")
-		if err != nil {
-			log.Println(err.Error())
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		defer mpartFile.Close()
-		uri, err := saveFile(mpartHeader, mpartFile)
-		if err != nil {
-			log.Println(err.Error())
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		CKEdFunc := r.FormValue("CKEditorFuncNum")
-		fmt.Fprintln(w, "<script>window.parent.CKEDITOR.tools.callFunction("+CKEdFunc+", \""+uri+"\");</script>")
-
-	} else {
-		err := fmt.Errorf("Method %q not allowed", r.Method)
-		log.Printf("ERROR: %s\n", err)
-		http.Error(w, err.Error(), 405)
+//Upload handles POST /api/upload route
+func Upload(c *gin.Context) {
+	err := c.Request.ParseMultipartForm(32 << 20)
+	if err != nil {
+		c.String(500, err.Error())
+		return
 	}
+	mpartFile, mpartHeader, err := c.Request.FormFile("upload")
+	if err != nil {
+		c.String(400, err.Error())
+		return
+	}
+	defer mpartFile.Close()
+	uri, err := saveFile(mpartHeader, mpartFile)
+	if err != nil {
+		c.String(400, err.Error())
+		return
+	}
+	resp := make(map[string]string)
+	resp["uri"] = uri
+	c.JSON(200, resp)
 }
 
 //saveFile saves file to disc and returns its relative uri
@@ -59,6 +47,9 @@ func saveFile(fh *multipart.FileHeader, f multipart.File) (string, error) {
 	uri := "/public/uploads/" + newName
 	fullName := filepath.Join(system.GetConfig().Uploads, newName)
 
+	if err := os.MkdirAll(system.GetConfig().Uploads, 0755); err != nil {
+		return "", err
+	}
 	file, err := os.OpenFile(fullName, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return "", err

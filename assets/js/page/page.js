@@ -8,4 +8,6 @@ module.exports = function(data){
   this.slug = m.prop(data.slug || '');
   this.content = m.prop(data.content || '');
   this.published = m.prop(data.published || true);
+  this.meta_description = m.prop(data.meta_description || '');
+  this.meta_keywords = m.prop(data.meta_keywords || '');
 }

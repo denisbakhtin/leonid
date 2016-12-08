@@ -9,91 +9,91 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PageGet(c *gin.Context) {
+func CategoryGet(c *gin.Context) {
 	db := models.GetDB()
 	H := H(c)
 
 	idslug := strings.SplitN(c.Param("idslug"), "-", 2)
-	page := &models.Page{}
+	category := &models.Category{}
 
-	if err := db.First(page, idslug[0]).Error; err != nil {
+	if err := db.First(category, idslug[0]).Error; err != nil {
 		c.HTML(500, "errors/500", gin.H{})
 		return
 	}
 
-	if page.ID == 0 || !page.Published {
+	if category.ID == 0 || !category.Published {
 		c.HTML(404, "errors/404", gin.H{})
 		return
 	}
 
-	if page.Slug != idslug[1] {
-		c.Redirect(303, page.URL())
+	if category.Slug != idslug[1] {
+		c.Redirect(303, category.URL())
 		return
 	}
 
-	H["Title"] = page.Name
-	H["Page"] = page
-	H["Active"] = page.URL
-	H["MetaDescription"] = page.MetaDescription
-	H["MetaKeywords"] = page.MetaKeywords
-	c.HTML(200, "pages/show", H)
+	H["Title"] = category.Name
+	H["Category"] = category
+	H["MetaDescription"] = category.MetaDescription
+	H["MetaKeywords"] = category.MetaKeywords
+	c.HTML(200, "categories/show", H)
+
 }
 
-func ApiPagesGet(c *gin.Context) {
+func ApiCategoriesGet(c *gin.Context) {
 	db := models.GetDB()
 
-	var pages []models.Page
-	if err := db.Find(&pages).Error; err != nil {
+	var categories []models.Category
+	if err := db.Order("id desc").Find(&categories).Error; err != nil {
 		c.JSON(500, "Внутренняя ошибка сервера")
 		return
 	}
 
-	c.JSON(200, pages)
+	c.JSON(200, categories)
 }
 
-func ApiPageGet(c *gin.Context) {
+func ApiCategoryGet(c *gin.Context) {
 	db := models.GetDB()
 	id := c.Param("id")
 
-	page := &models.Page{}
-	db.Find(page, id)
-	if page.ID == 0 {
+	category := &models.Category{}
+	db.Find(category, id)
+	if category.ID == 0 {
 		c.JSON(404, "Указанная страница не найдена")
 		return
 	}
 
-	c.JSON(200, page)
+	c.JSON(200, category)
 }
 
-func ApiPageCreate(c *gin.Context) {
+func ApiCategoryCreate(c *gin.Context) {
 	db := models.GetDB()
-	page := &models.Page{}
-	if c.BindJSON(page) == nil {
-		if err := db.Create(page).Error; err != nil {
+	category := &models.Category{}
+	if c.BindJSON(category) == nil {
+		if err := db.Create(category).Error; err != nil {
 			c.JSON(http.StatusBadRequest, err.Error())
 			return
 		}
-		c.JSON(http.StatusCreated, page)
+		c.JSON(http.StatusCreated, category)
 
 	} else {
 		c.JSON(http.StatusBadRequest, "Внимательно проверьте заполнение всех полей")
 	}
 }
 
-func ApiPageUpdate(c *gin.Context) {
+func ApiCategoryUpdate(c *gin.Context) {
 	db := models.GetDB()
 	id := c.Param("id")
-	page := &models.Page{}
+	category := &models.Category{}
 
-	if c.BindJSON(page) == nil {
-		pageDB := &models.Page{}
-		db.Find(pageDB, id)
-		if pageDB.ID == 0 {
+	if c.BindJSON(category) == nil {
+		categoryDB := &models.Category{}
+		db.Find(categoryDB, id)
+		if categoryDB.ID == 0 {
 			c.JSON(404, "Указанная страница не найдена")
 			return
 		}
 
-		if err := db.Save(page).Error; err != nil {
+		if err := db.Save(category).Error; err != nil {
 			c.JSON(500, fmt.Errorf("Ошибка при сохранении записи: %s", err.Error()))
 			return
 		}
@@ -105,18 +105,18 @@ func ApiPageUpdate(c *gin.Context) {
 	}
 }
 
-func ApiPageDelete(c *gin.Context) {
+func ApiCategoryDelete(c *gin.Context) {
 	db := models.GetDB()
 	id := c.Param("id")
 
-	page := &models.Page{}
-	db.First(page, id)
-	if page.ID == 0 {
+	category := &models.Category{}
+	db.First(category, id)
+	if category.ID == 0 {
 		c.JSON(404, "Страница с указанным номером не найдена")
 		return
 	}
 
-	if err := db.Delete(page).Error; err != nil {
+	if err := db.Delete(category).Error; err != nil {
 		c.JSON(500, fmt.Sprintf("Ошибка при удалении записи: %s", err.Error()))
 		return
 	}

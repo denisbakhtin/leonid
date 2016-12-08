@@ -7,6 +7,7 @@ var Spinner = require('../layout/spinner');
 var PageSizeSelector = require('../layout/pagesizeselector');
 var Paginator = require('../layout/paginator');
 var Page = require('./page');
+var Editor = require('../editor/editorcomponent');
 
 
 var PageComponent = {};
@@ -45,11 +46,11 @@ PageComponent.controller = function () {
     m.redraw();
     ctrl.message('');
     ctrl.error('');
-    ctrl.vm.model.update(ctrl.vm.record)
+    ctrl.vm.model.update(ctrl.vm.record())
       .then(
           function(success) {ctrl.message('Изменения успешно сохранены');},
-          function(error) {ctrl.error(funcs.parseError(error));}
-          ).then(function() {ctrl.updating(false); m.redraw()});
+          function(error) {ctrl.error(funcs.parseError(error));})
+      .then(function() {ctrl.updating(false); m.redraw()});
   }
   ctrl.create = function() {
     event.preventDefault();
@@ -63,8 +64,7 @@ PageComponent.controller = function () {
           ctrl.error(funcs.parseError(error));
           ctrl.updating(false); 
           m.redraw();
-        }
-        );
+        });
   }
 }
 PageComponent.view = function (ctrl) {
@@ -79,12 +79,16 @@ PageComponent.view = function (ctrl) {
           m('input.form-control', {value: ctrl.vm.record().name(), onchange: m.withAttr("value", ctrl.vm.record().name)})
         ]),
         m('.form-group', [
-          m('label', 'Короткий адрес'),
-          m('input.form-control', {value: ctrl.vm.record().slug(), onchange: m.withAttr("value", ctrl.vm.record().slug)})
+          m('label', 'Содержание'),
+          m.component(Editor, {text: ctrl.vm.record().content})
         ]),
         m('.form-group', [
-          m('label', 'Содержание'),
-          m('textarea.form-control', {value: ctrl.vm.record().content(), onchange: m.withAttr("value", ctrl.vm.record().content)})
+          m('label', 'Мета описание'),
+          m('input.form-control', {value: ctrl.vm.record().meta_description(), onchange: m.withAttr("value", ctrl.vm.record().meta_description)})
+        ]),
+        m('.form-group', [
+          m('label', 'Мета ключевики'),
+          m('input.form-control', {value: ctrl.vm.record().meta_keywords(), onchange: m.withAttr("value", ctrl.vm.record().meta_keywords)})
         ]),
         m('.form-group', [
           m('label', 'Опубликовать'),
@@ -104,8 +108,8 @@ PageComponent.view = function (ctrl) {
             m('span', 'Сохранить')
           ]),
           ],
-          m('button.btn.btn-warning', { onclick: ctrl.cancel }, [
-            m('i.fa.fa-chevron-left'),
+          m('button.btn.btn-danger', { onclick: ctrl.cancel }, [
+            m('i.fa.fa-times'),
             m('span', 'Отмена')
           ])
         ])

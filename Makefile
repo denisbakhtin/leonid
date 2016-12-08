@@ -11,8 +11,13 @@ doc:
 lint:
 	@golint ./...
 
-debug: clean
+debug_server: 
 	@reflex -c reflex.conf
+debug_assets:
+	@gulp watch
+
+#run 'make -j2 debug' to launch both servers in parallel
+debug: clean debug_server debug_assets 
 
 run: build
 	./leonid

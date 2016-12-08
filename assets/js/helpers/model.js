@@ -35,7 +35,7 @@ module.exports = function(args) {
     return mrequest({
       background: true,
       method: "PUT",
-      url: args.url + "/" + data().id(),
+      url: args.url + "/" + data.id(),
       data: data,
     })
   };

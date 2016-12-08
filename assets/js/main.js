@@ -3,8 +3,9 @@
 
 var DashboardComponent = require("./dashboard");
 var CategoriesComponent = require("./category/categoriescomponent");
+var CategoryComponent = require("./category/categorycomponent");
 var ProductsComponent = require("./product/productscomponent");
-var ProductComponent = require("./product/product");
+var ProductComponent = require("./product/productcomponent");
 var UsersComponent = require("./user/userscomponent");
 var UserComponent = require("./user/usercomponent");
 var PagesComponent = require("./page/pagescomponent");
@@ -21,6 +22,7 @@ m.route(document.getElementById("admin-app"), "/", {
   "/pages": layout(PagesComponent),
   "/pages/:id": layout(PageComponent),
   "/categories": layout(CategoriesComponent),
+  "/categories/:id": layout(CategoryComponent),
   "/products": layout(ProductsComponent),
   "/products/:id": layout(ProductComponent),
 });
