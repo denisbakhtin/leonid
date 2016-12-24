@@ -27,6 +27,8 @@ var paths = {
     "./bower_components/jquery/dist/jquery.js",
     "./bower_components/bootstrap-sass/assets/javascripts/bootstrap.js",
     "./bower_components/mithril/mithril.js",
+    "./bower_components/baguettebox.js/dist/baguetteBox.js",
+    "./bower_components/jquery.scrollTo/jquery.scrollTo.js",
   ],
   js: [
     './assets/js/main.js',
@@ -36,6 +38,7 @@ var paths = {
   css : [
     "./bower_components/font-awesome/css/font-awesome.css",
     "./bower_components/animate.css/animate.css",
+    "./bower_components/baguettebox.js/dist/baguetteBox.css",
     './assets/scss/main.scss',
   ],
   images: './assets/images/**/*',

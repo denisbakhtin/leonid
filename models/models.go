@@ -50,4 +50,5 @@ func ApplyMigrations() {
 	db.AutoMigrate(&Page{})
 	db.AutoMigrate(&Category{})
 	db.AutoMigrate(&Product{})
+	db.AutoMigrate(&Image{})
 }

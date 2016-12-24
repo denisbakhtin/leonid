@@ -34,8 +34,7 @@ CategorySelect.view = function(ctrl, args) {
   ? ctrl.vm.list().map(function(data){
     return m('option', {value: data.id()}, data.name())
   })
-  : ""
-  );
+  : "");
 }
 
 module.exports = CategorySelect;

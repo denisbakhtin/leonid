@@ -56,7 +56,7 @@ func ApiProductGet(c *gin.Context) {
 	id := c.Param("id")
 
 	product := &models.Product{}
-	db.Find(product, id)
+	db.Preload("Images").Find(product, id)
 	if product.ID == 0 {
 		c.JSON(404, "Указанный товар не найден")
 		return

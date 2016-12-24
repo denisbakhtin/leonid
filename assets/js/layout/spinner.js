@@ -4,19 +4,17 @@ var LoadingSpinner = {};
 
 LoadingSpinner.controller = function() {}
 LoadingSpinner.view = function(ctrl) {
-  return m('#loading-spinner.animated.fadeIn', [
+  return m('#loading-spinner.animated.fadeIn',
       m('p.text-center', m('i.fa.fa-spin.fa-cog.fa-3x')),
-      m('p.text-center', 'Подождите, идет загрузка...')
-  ]);
+      m('p.text-center', 'Подождите, идет загрузка...'));
 }
 
 var UpdatingSpinner = {};
 
 UpdatingSpinner.controller = function(args) {}
 UpdatingSpinner.view = function(ctrl, args) {
-  return m('#updating-spinner.animated.fadeIn', [
-      m('p#spinner-text', m('i.fa.fa-spin.fa-cog.fa-3x')),
-  ]);
+  return m('#updating-spinner.animated.fadeIn',
+      m('p#spinner-text', m('i.fa.fa-spin.fa-cog.fa-3x')));
 }
 
 var Spinner = {};
@@ -28,8 +26,7 @@ Spinner.view = function(ctrl, args) {
   return m('#spinner', 
       (ctrl.standalone) 
       ? m.component(LoadingSpinner) 
-      : m.component(UpdatingSpinner)
-      )
+      : m.component(UpdatingSpinner));
 }
 
 module.exports = Spinner;

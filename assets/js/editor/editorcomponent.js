@@ -71,48 +71,42 @@ EditorComponent.view = function(ctrl) {
 
   var actions = function() {
     return [
-      m('.btn-group', [
+      m('.btn-group',
           button(m('i.fa.fa-bold'), 'bold', 'Полужирный'),
           button(m('i.fa.fa-italic'), 'italic', 'Курсив'),
           button(m('i.fa.fa-underline'), 'underline', 'Подчеркнутый'),
-          button(m('i.fa.fa-strikethrough'), 'strikeThrough', 'Зачеркнутый'),
-      ]),
-      m('.btn-group', [
+          button(m('i.fa.fa-strikethrough'), 'strikeThrough', 'Зачеркнутый')),
+      m('.btn-group',
           button(m('i.fa.fa-subscript'), 'subscript', 'Верхний индекс'),
-          button(m('i.fa.fa-superscript'), 'superscript', 'Нижний индекс'),
-      ]),
-      m('.btn-group', [
+          button(m('i.fa.fa-superscript'), 'superscript', 'Нижний индекс')),
+      m('.btn-group',
           button(m('i.fa.fa-list-ol'), 'insertOrderedList', 'Нумерованный список'),
-          button(m('i.fa.fa-list-ul'), 'insertUnorderedList', 'Маркированный список'),
-      ]),
-      m('.btn-group', [
+          button(m('i.fa.fa-list-ul'), 'insertUnorderedList', 'Маркированный список')),
+      m('.btn-group',
           button(m('i.fa.fa-align-left'), 'justifyLeft', 'По левому краю'),
           button(m('i.fa.fa-align-right'), 'justifyRight', 'По правому краю'),
           button(m('i.fa.fa-align-center'), 'justifyCenter', 'По центру'),
-          button(m('i.fa.fa-align-justify'), 'justifyFull', 'По ширине'),
-      ]),
-      m('.btn-group', [
+          button(m('i.fa.fa-align-justify'), 'justifyFull', 'По ширине')),
+      m('.btn-group',
           button(m('i.fa.fa-undo'), 'undo', 'Отменить'),
-          button(m('i.fa.fa-repeat'), 'redo', 'Повторить'),
-      ]),
-      m('.btn-group', [
+          button(m('i.fa.fa-repeat'), 'redo', 'Повторить')),
+      m('.btn-group',
           button(m('i.fa.fa-link'), 'createLink', 'Гиперссылка'),
-          button(m('i.fa.fa-unlink'), 'unlink', 'Удалить гиперссылку'),
-      ]),
+          button(m('i.fa.fa-unlink'), 'unlink', 'Удалить гиперссылку')),
       button(m('i.fa.fa-image'), 'insertImage', 'Вставить изображение'),
       button(m('i.fa.fa-eraser'), 'removeFormat', 'Очистить форматирование'),
       button(m('i.fa.fa-code'), 'code', 'Исходный код'),
     ];
   }
   
-  return m('.editor', [
+  return m('.editor',
       m('.actions', actions()),
       ctrl.show_link_modal() ? m.component(LinkModal, {href: ctrl.link_href, onhide: ctrl.on_link_modal_hide}) : "",
       ctrl.show_img_modal() ? m.component(ImgModal, {src: ctrl.img_src, onhide: ctrl.on_img_modal_hide}) : "",
       ctrl.code() ?
       m('textarea.editor-area.form-control', {
         onchange: m.withAttr('value', ctrl.text),
-        value: ctrl.text(),
+        value: ctrl.text()
       })
       :
       m('.editor-area.form-control', {
@@ -125,8 +119,7 @@ EditorComponent.view = function(ctrl) {
            m.redraw();
          }, false);
         }
-      }, m.trust(ctrl.text())),
-    ]);
+      }, m.trust(ctrl.text())));
 }
 
 module.exports = EditorComponent;

@@ -1,12 +1,14 @@
 {{define "footer"}}
       <div id="footer" class="full-width">
         <div class="container">
-          <p class="text-muted">&copy; 2017 "Вечная Память".
+          Вечная Память &copy; {{currentYear}}
         </div>
       </div>
       {{template "yacounter" .}}
       {{template "gocounter" .}}
     </div> <!-- #main-container -->
+    <a href="#top" id="top-link"><span class="fa fa-chevron-up"></span></a>
+    <script src="/public/js/app.js"></script>
   </body>
 </html>
 {{end}}

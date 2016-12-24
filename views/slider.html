@@ -1,0 +1,16 @@
+{{define "slider"}}
+<div id="home-slider" class="carousel fade carousel-fade" data-pause="" data-ride="carousel">
+  <div class="carousel-inner" role="listbox">
+    {{range $index, $slide := slides}}
+    <div class="item {{if eq $index 0}}active{{end}}">
+      <img src="{{$slide}}" />
+    </div>
+    {{end}}
+  </div>
+  <div class="carousel-title">
+    <h1>Памятники, столешницы и подоконники</h1>
+    <h5>Из мрамора и гранита по <span class="highlight">низким ценам</span> в Волжском и Волгограде</h5>
+    <a href="/catalog" class="btn btn-default btn-large">Каталог</a>
+  </div>
+</div>
+{{end}}

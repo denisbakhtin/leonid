@@ -12,7 +12,7 @@ Tabs.controller = function(args) {
 }
 
 Tabs.view = function(ctrl, args) {
-  return m('.tabs', [
+  return m('.tabs',
       m('ul.nav.nav-tabs[role="tablist"]', 
         args.map(function(data) {
           return m('li[role="presentation"]', 
@@ -25,16 +25,13 @@ Tabs.view = function(ctrl, args) {
                 href: "#" + data.id,
                 onclick: ctrl.setactive.bind(this, data.id),
               }, data.title))
-        })
-      ),
+        })),
       m('.tab-content', 
         args.map(function(data) {
           return (ctrl.active() == data.id)
             ? m('.tab-pane.active[role="tabpanel"]', {id: data.id}, m.component(data.component))
             : ""
-        })
-       )
-    ]);
+        })));
 }
 
 module.exports = Tabs;

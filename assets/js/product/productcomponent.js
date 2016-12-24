@@ -9,6 +9,7 @@ var Paginator = require("../layout/paginator");
 var CategorySelect = require("../category/categoryselect");
 var Product = require("./product");
 var Editor = require('../editor/editorcomponent');
+var ImagesComponent = require('../image/imagescomponent');
 
 var ProductComponent = {};
 ProductComponent.vm = {};
@@ -70,65 +71,53 @@ ProductComponent.controller = function () {
 ProductComponent.view = function (ctrl) {
 
   //complete view
-  return m("#productcomponent", [
+  return m("#productcomponent",
       m("h1", ctrl.title),
       ctrl.vm.record()
-      ? m('form.animated.fadeIn', [
-        m('.form-group', [
+      ? m('form.animated.fadeIn',
+        m('.form-group',
           m('label', 'Название'),
-          m('input.form-control', {value: ctrl.vm.record().name(), onchange: m.withAttr("value", ctrl.vm.record().name)})
-        ]),
-        m('.row', [
-          m('.form-group col-sm-6', [
+          m('input.form-control', {value: ctrl.vm.record().name(), onchange: m.withAttr("value", ctrl.vm.record().name)})),
+        m('.row',
+          m('.form-group col-sm-6',
             m('label', 'Категория'),
-            m.component(CategorySelect, {value: ctrl.vm.record().category_id, error: ctrl.error}),
-          ]),
-          m('.form-group col-sm-6', [
+            m.component(CategorySelect, {value: ctrl.vm.record().category_id, error: ctrl.error})),
+          m('.form-group col-sm-6',
             m('label', 'Цена'),
-            m('.input-group', [
+            m('.input-group',
               m('input.form-control[type=number][step=0.01]', {value: ctrl.vm.record().price(), onchange: m.withAttr("value", ctrl.vm.record().price)}),
-              m('span.input-group-addon', 'р.')
-            ])
-          ]),
-        ]),
-        m('.form-group', [
+              m('span.input-group-addon', 'р.')))),
+        m('.form-group',
           m('label', 'Содержание'),
-          m.component(Editor, {text: ctrl.vm.record().content})
-        ]),
-        m('.form-group', [
+          m.component(Editor, {text: ctrl.vm.record().content})),
+        m('.form-group.outline',
+          m('label', 'Фотографии'),
+          m.component(ImagesComponent, ctrl.vm.record().images)),
+        m('.form-group',
           m('label', 'Мета описание'),
-          m('input.form-control', {value: ctrl.vm.record().meta_description(), onchange: m.withAttr("value", ctrl.vm.record().meta_description)})
-        ]),
-        m('.form-group', [
-          m('label', 'Мета ключевики'),
-          m('input.form-control', {value: ctrl.vm.record().meta_keywords(), onchange: m.withAttr("value", ctrl.vm.record().meta_keywords)})
-        ]),
-        m('.form-group', [
-          m('label', 'Опубликовать'),
-          m('input[type=checkbox]', {checked: ctrl.vm.record().published(), onclick: m.withAttr("checked", ctrl.vm.record().published)})
-        ]),
+          m('input.form-control', {value: ctrl.vm.record().meta_description(), onchange: m.withAttr("value", ctrl.vm.record().meta_description)})),
+        m('.form-group',
+            m('label', 'Мета ключевики'),
+            m('input.form-control', {value: ctrl.vm.record().meta_keywords(), onchange: m.withAttr("value", ctrl.vm.record().meta_keywords)})),
+        m('.form-group',
+            m('label', 'Опубликовать'),
+            m('input[type=checkbox]', {checked: ctrl.vm.record().published(), onclick: m.withAttr("checked", ctrl.vm.record().published)})),
         (ctrl.message()) ? m('.action-message.animated.fadeInRight', ctrl.message()) : "",
         (ctrl.error()) ? m('.action-alert.animated.fadeInRight', ctrl.error()) : "",
-        m('.actions', [
-          (m.route.param("id") == "new")
-          ? m('button.btn.btn-primary[type="submit"]', { onclick: ctrl.create, disabled: ctrl.updating() }, [
-            (ctrl.updating()) ? m('i.fa.fa-spin.fa-refresh') : m('i.fa.fa-check'),
-            m('span', 'Создать')
-          ])
-          : [
-          m('button.btn.btn-primary[type="submit"]', { onclick: ctrl.update, disabled: ctrl.updating() }, [
-            (ctrl.updating()) ? m('i.fa.fa-spin.fa-refresh') : m('i.fa.fa-check'),
-            m('span', 'Сохранить')
-          ]),
-          ],
-          m('button.btn.btn-danger', { onclick: ctrl.cancel }, [
-            m('i.fa.fa-times'),
-            m('span', 'Отмена')
-          ])
-        ])
-      ])
-      : m.component(Spinner, {standalone: true})
-    ]);
+        m('.actions',
+            (m.route.param("id") == "new")
+            ? m('button.btn.btn-primary[type="submit"]', { onclick: ctrl.create, disabled: ctrl.updating() },
+              (ctrl.updating()) ? m('i.fa.fa-spin.fa-refresh') : m('i.fa.fa-check'),
+              m('span', 'Создать'))
+            : [
+            m('button.btn.btn-primary[type="submit"]', { onclick: ctrl.update, disabled: ctrl.updating() },
+              (ctrl.updating()) ? m('i.fa.fa-spin.fa-refresh') : m('i.fa.fa-check'),
+              m('span', 'Сохранить')
+             )],
+            m('button.btn.btn-danger', { onclick: ctrl.cancel },
+              m('i.fa.fa-times'),
+              m('span', 'Отмена'))))
+      : m.component(Spinner, {standalone: true}));
 }
 
 module.exports = ProductComponent;

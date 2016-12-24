@@ -1,7 +1,4 @@
 config/config.json
-public/uploads/*.jpg
-public/uploads/*.png
-public/css/style.css
 public/sitemap/*
 node_modules
 bower_components

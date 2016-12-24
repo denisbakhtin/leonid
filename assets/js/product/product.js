@@ -1,5 +1,7 @@
 'use strict';
 
+var Image = require('../image/image');
+
 module.exports = function(data){
   data = data || {};
   this.id = m.prop(data.id || 0);
@@ -13,4 +15,8 @@ module.exports = function(data){
   this.category_id = m.prop(data.category_id || 0);
   this.meta_description = m.prop(data.meta_description || '');
   this.meta_keywords = m.prop(data.meta_keywords || '');
+  data.images = data.images || [];
+  this.images = data.images.map(function(img){
+    return new Image(img);
+  });
 }

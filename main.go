@@ -56,27 +56,31 @@ func main() {
 
 			api.GET("/pages", controllers.ApiPagesGet)
 			api.GET("/pages/:id", controllers.ApiPageGet)
+			api.POST("/pages", controllers.ApiPageCreate)
 			api.PUT("/pages/:id", controllers.ApiPageUpdate)
 			api.DELETE("/pages/:id", controllers.ApiPageDelete)
-			api.POST("/pages", controllers.ApiPageCreate)
 
 			api.GET("/categories", controllers.ApiCategoriesGet)
 			api.GET("/categories/:id", controllers.ApiCategoryGet)
+			api.POST("/categories", controllers.ApiCategoryCreate)
 			api.PUT("/categories/:id", controllers.ApiCategoryUpdate)
 			api.DELETE("/categories/:id", controllers.ApiCategoryDelete)
-			api.POST("/categories", controllers.ApiCategoryCreate)
 
 			api.GET("/products", controllers.ApiProductsGet)
 			api.GET("/products/:id", controllers.ApiProductGet)
+			api.POST("/products", controllers.ApiProductCreate)
 			api.PUT("/products/:id", controllers.ApiProductUpdate)
 			api.DELETE("/products/:id", controllers.ApiProductDelete)
-			api.POST("/products", controllers.ApiProductCreate)
+
+			api.GET("/images/:id", controllers.ApiImageGet)
+			api.POST("/images", controllers.ApiImageCreate)
+			api.DELETE("/images/:id", controllers.ApiImageDelete)
 
 			api.GET("/users", controllers.ApiUsersGet)
 			api.GET("/users/:id", controllers.ApiUserGet)
+			api.POST("/users", controllers.ApiUserCreate)
 			api.PUT("/users/:id", controllers.ApiUserUpdate)
 			api.DELETE("/users/:id", controllers.ApiUserDelete)
-			api.POST("/users", controllers.ApiUserCreate)
 			api.POST("/logout", controllers.ApiLogout)
 		}
 	}

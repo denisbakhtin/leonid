@@ -1,5 +1,5 @@
 {{define "navbar"}}
-<div id="navbar-main" class="full-width navbar navbar-default" role="navigation">
+<div id="navbar-main" class="full-width navbar navbar-default container-fluid navbar-fixed-top" role="navigation">
   <div class="navbar-header">
     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
       <span class="sr-only">Toggle navigation</span>
@@ -10,31 +10,31 @@
 		<a class="navbar-brand" href="/">Вечная память</a>
   </div>
   <div class="navbar-collapse collapse">
-    <ul class="nav navbar-nav">
+    <ul class="nav navbar-nav navbar-right">
+      {{$active := .Active}}
       {{range mainMenu}}
-      <li class="{{.CssClass}}">
+      <li {{if $active}}{{if eq $active .URL}}class="active"{{end}}{{end}}>
         <a href="{{.URL}}">{{.Title}}</a>
       </li>
       {{end}}
-		</ul>
-		<ul class="nav navbar-nav navbar-right">
       {{if .Authenticated}}
       <li>
-        <a href="/admin"><i class="fa fa-cog"></i>Панель управления</a>
+        <a class="authenticated" href="/admin">Панель управления</a>
       </li>
       <li>
-        <a href="/logout"><i class="fa fa-sign-out"></i>Выйти</a>
+        <a class="authenticated" href="/logout">Выйти</a>
       </li>
 			{{else}}
       <li>
-        <a class="btn btn-default" href="/signin"><i class="fa fa-sign-in"></i>Войти</a>
+        <a class="authenticated" href="/signin">Войти</a>
       </li>
-      <li>
-        <a href="/signup"><i class="fa fa-user"></i>Регистрация</a>
-      </li>
+        {{if signupEnabled}}
+        <li>
+          <a class="authenticated" href="/signup">Регистрация</a>
+        </li>
+        {{end}}
       {{end}}
     </ul>
   </div><!--/.nav-collapse -->
 </div>
-
 {{end}}

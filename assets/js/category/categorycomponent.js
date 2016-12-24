@@ -58,7 +58,7 @@ CategoryComponent.controller = function () {
     ctrl.message('');
     ctrl.error('');
     ctrl.vm.model.create(ctrl.vm.record).then(
-        function(success) {m.route("/categories");},
+        function(success) {m.route("/categories")},
         function(error) {
           ctrl.error(funcs.parseError(error));
           ctrl.updating(false); 
@@ -68,53 +68,40 @@ CategoryComponent.controller = function () {
 }
 CategoryComponent.view = function (ctrl) {
 
-  //complete view
-  return m("#categorycomponent", [
+  return m("#categorycomponent",
       m("h1", ctrl.title),
       ctrl.vm.record()
-      ? m('form.animated.fadeIn', [
-        m('.form-group', [
+      ? m('form.animated.fadeIn',
+        m('.form-group',
           m('label', 'Название'),
-          m('input.form-control', {value: ctrl.vm.record().name(), onchange: m.withAttr("value", ctrl.vm.record().name)})
-        ]),
-        m('.form-group', [
+          m('input.form-control', {value: ctrl.vm.record().name(), onchange: m.withAttr("value", ctrl.vm.record().name)})),
+        m('.form-group',
           m('label', 'Описание'),
-          m.component(Editor, {text: ctrl.vm.record().content})
-        ]),
-        m('.form-group', [
+          m.component(Editor, {text: ctrl.vm.record().content})),
+        m('.form-group',
           m('label', 'Мета описание'),
-          m('input.form-control', {value: ctrl.vm.record().meta_description(), onchange: m.withAttr("value", ctrl.vm.record().meta_description)})
-        ]),
-        m('.form-group', [
+          m('input.form-control', {value: ctrl.vm.record().meta_description(), onchange: m.withAttr("value", ctrl.vm.record().meta_description)})),
+        m('.form-group',
           m('label', 'Мета ключевики'),
-          m('input.form-control', {value: ctrl.vm.record().meta_keywords(), onchange: m.withAttr("value", ctrl.vm.record().meta_keywords)})
-        ]),
-        m('.form-group', [
+          m('input.form-control', {value: ctrl.vm.record().meta_keywords(), onchange: m.withAttr("value", ctrl.vm.record().meta_keywords)})),
+        m('.form-group',
           m('label', 'Опубликовать'),
-          m('input[type=checkbox]', {checked: ctrl.vm.record().published(), onclick: m.withAttr("checked", ctrl.vm.record().published)})
-        ]),
+          m('input[type=checkbox]', {checked: ctrl.vm.record().published(), onclick: m.withAttr("checked", ctrl.vm.record().published)})),
         (ctrl.message()) ? m('.action-message.animated.fadeInRight', ctrl.message()) : "",
         (ctrl.error()) ? m('.action-alert.animated.fadeInRight', ctrl.error()) : "",
-        m('.actions', [
-          (m.route.param("id") == "new")
-          ? m('button.btn.btn-primary[type="submit"]', { onclick: ctrl.create, disabled: ctrl.updating() }, [
-            (ctrl.updating()) ? m('i.fa.fa-spin.fa-refresh') : m('i.fa.fa-check'),
-            m('span', 'Создать')
-          ])
-          : [
-          m('button.btn.btn-primary[type="submit"]', { onclick: ctrl.update, disabled: ctrl.updating() }, [
-            (ctrl.updating()) ? m('i.fa.fa-spin.fa-refresh') : m('i.fa.fa-check'),
-            m('span', 'Сохранить')
-          ]),
-          ],
-          m('button.btn.btn-danger', { onclick: ctrl.cancel }, [
-            m('i.fa.fa-times'),
-            m('span', 'Отмена')
-          ])
-        ])
-      ])
-      : m.component(Spinner, {standalone: true})
-    ]);
+        m('.actions',
+            (m.route.param("id") == "new")
+            ? m('button.btn.btn-primary[type="submit"]', { onclick: ctrl.create, disabled: ctrl.updating() },
+              (ctrl.updating()) ? m('i.fa.fa-spin.fa-refresh') : m('i.fa.fa-check'),
+              m('span', 'Создать'))
+            : [
+            m('button.btn.btn-primary[type="submit"]', { onclick: ctrl.update, disabled: ctrl.updating() },
+              (ctrl.updating()) ? m('i.fa.fa-spin.fa-refresh') : m('i.fa.fa-check'),
+              m('span', 'Сохранить'))],
+            m('button.btn.btn-danger', { onclick: ctrl.cancel },
+              m('i.fa.fa-times'),
+              m('span', 'Отмена'))))
+          : m.component(Spinner, {standalone: true}));
 }
 
 module.exports = CategoryComponent;

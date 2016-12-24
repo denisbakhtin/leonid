@@ -38,32 +38,26 @@ ImgModalComponent.controller = function(args) {
 }
 
 ImgModalComponent.view = function(ctrl) {
-  return m('.modal.fade.in.animated.fadeIn.shown[role=dialog]', [
-      m('.modal-dialog[role=document]', [
-        m('.modal-content', [
-          m('.modal-header', [
-            m('h4.modal-title', 'Загрузка изображения'),
-          ]),
-          m('.modal-body', [
-            m('.file-upload-wrapper.form-group', [
-              m('input#image_input[type=file]', {onchange: ctrl.onfileselect}),
-            ]),
+  return m('.modal.fade.in.animated.fadeIn.shown[role=dialog]',
+      m('.modal-dialog[role=document]',
+        m('.modal-content',
+          m('.modal-header',
+            m('h4.modal-title', 'Загрузка изображения')),
+          m('.modal-body',
+            m('.file-upload-wrapper.form-group',
+              m('input#image_input[type=file]', {onchange: ctrl.onfileselect})),
             ctrl.error() ?
-            m('.form-group', [
-              m('label.text-danger', ctrl.error())
-            ]) : "",
-            m('.form-group', [
+            m('.form-group',
+              m('label.text-danger', ctrl.error())) 
+            : "",
+            m('.form-group',
               m('label', 'Адрес изображения'),
               m('input.form-control', {value: ctrl.src(), onchange: m.withAttr('value', ctrl.src), placeholder: 'Выберите файл или укажите адрес изображения вручную'})
-            ]),
-          ]),
-          m('.modal-footer', [
+             )),
+          m('.modal-footer',
             m('button.btn.btn-primary[type=button]', {onclick: ctrl.onhide.bind(this, 'ok')}, 'Вставить'),
-            m('button.btn.btn-default[type=button]', {onclick: ctrl.onhide.bind(this, 'cancel')}, 'Отмена'),
-          ]),
-        ]),
-      ]),
-  ]);
+            m('button.btn.btn-default[type=button]', {onclick: ctrl.onhide.bind(this, 'cancel')}, 'Отмена')
+           ))));
 }
 
 module.exports = ImgModalComponent;

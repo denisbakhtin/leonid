@@ -14,7 +14,7 @@ Paginator.controller = function(args) {
 Paginator.view = function(ctrl, args) {
   return m('#paginator', 
       (args.list().length > args.pagesize())
-      ? m('nav', [
+      ? m('nav',
         m('ul.pagination', 
           pages(args.list().length, args.pagesize())
           .map(function(p, index){
@@ -23,11 +23,8 @@ Paginator.view = function(ctrl, args) {
                 ? m('span', index+1)
                 : m('a[href=/]', {onclick: ctrl.setpage.bind(this, index)}, index+1)
                 )
-          })
-         )
-      ])
-      : ""
-      );
+          })))
+      : "");
 }
 
 module.exports = Paginator;

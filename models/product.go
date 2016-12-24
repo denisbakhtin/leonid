@@ -3,7 +3,6 @@ package models
 import (
 	"fmt"
 	"html/template"
-	"strings"
 )
 
 //Product type contains product info
@@ -18,8 +17,9 @@ type Product struct {
 	MetaDescription string  `json:"meta_description"`
 	MetaKeywords    string  `json:"meta_keywords"`
 	//relations
-	CategoryID int      `gorm:"index" json:"category_id"`
+	CategoryID uint     `gorm:"index" json:"category_id"`
 	Category   Category `json:"category"`
+	Images     []Image  `json:"images"`
 }
 
 func (product *Product) URL() string {
@@ -35,15 +35,11 @@ func (product *Product) HTMLContent() template.HTML {
 }
 
 func (product *Product) BeforeCreate() (err error) {
-	if strings.TrimSpace(product.Slug) == "" {
-		product.Slug = createSlug(product.Name)
-	}
+	product.Slug = createSlug(product.Name)
 	return
 }
 
 func (product *Product) BeforeSave() (err error) {
-	if strings.TrimSpace(product.Slug) == "" {
-		product.Slug = createSlug(product.Name)
-	}
+	product.Slug = createSlug(product.Name)
 	return
 }

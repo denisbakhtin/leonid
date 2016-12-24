@@ -33,7 +33,7 @@ func PageGet(c *gin.Context) {
 
 	H["Title"] = page.Name
 	H["Page"] = page
-	H["Active"] = page.URL
+	H["Active"] = page.URL()
 	H["MetaDescription"] = page.MetaDescription
 	H["MetaKeywords"] = page.MetaKeywords
 	c.HTML(200, "pages/show", H)

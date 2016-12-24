@@ -32,9 +32,11 @@ func loadTemplates() {
 		"dateTime":      DateTime,
 		"date":          Date,
 		"mainMenu":      MainMenu,
-		"oddEvenClass":  OddEvenClass,
 		"truncate":      Truncate,
 		"eqRI":          EqRI,
+		"slides":        Slides,
+		"signupEnabled": SignupEnabled,
+		"currentYear":   CurrentYear,
 	})
 
 	fn := func(path string, f os.FileInfo, err error) error {
@@ -74,6 +76,11 @@ func Date(t time.Time) string {
 	return fmt.Sprintf("%d-%02d-%02d", t.Year(), t.Month(), t.Day())
 }
 
+//CurrentYear returns current year
+func CurrentYear() string {
+	return fmt.Sprintf("%d", time.Now().Local().Year())
+}
+
 //StringInSlice returns true if value is in list slice
 func StringInSlice(value string, list []string) bool {
 	for i := range list {
@@ -84,13 +91,20 @@ func StringInSlice(value string, list []string) bool {
 	return false
 }
 
-//OddEvenClass returns odd or even class depending on the index
-func OddEvenClass(index int) string {
-	//range indexes start with zero %)
-	if (index+1)%2 == 1 {
-		return "odd"
+//Slides returns array of slides for home carousel
+func Slides() []string {
+	return []string{
+		"/public/uploads/memorial_1920x800.jpg",
+		"/public/uploads/stol_1920x800.jpg",
+		"/public/uploads/podokonnik_1920x800.jpg",
+		"/public/uploads/stol2_1920x800.jpg",
+		"/public/uploads/stol3_1920x800.jpg",
 	}
-	return "even"
+}
+
+//SignupEnabled checks if signup is enabled by config.json
+func SignupEnabled() bool {
+	return GetConfig().SignupEnabled
 }
 
 //MainMenu returns the list of main menu items
@@ -100,7 +114,11 @@ func MainMenu() []MenuItem {
 	//contacts, _ := models.GetPage(7)
 	menu := []MenuItem{
 		MenuItem{
-			URL:   "pages/about",
+			URL:   "/",
+			Title: "Главная",
+		},
+		MenuItem{
+			URL:   "/page/1-o-kompanii",
 			Title: "О компании",
 		},
 		MenuItem{
@@ -108,12 +126,12 @@ func MainMenu() []MenuItem {
 			Title: "Каталог",
 		},
 		MenuItem{
-			URL:   "/pages/pricelist",
-			Title: "Прайс-лист",
+			URL:   "/page/3-prais-list",
+			Title: "Прайс лист",
 		},
 		MenuItem{
-			URL:   "/pages/job",
-			Title: "Вакансии",
+			URL:   "/page/2-kontakty",
+			Title: "Контакты",
 		},
 	}
 	return menu

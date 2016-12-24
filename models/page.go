@@ -3,7 +3,6 @@ package models
 import (
 	"fmt"
 	"html/template"
-	"strings"
 )
 
 //Page type contains page info
@@ -30,15 +29,11 @@ func (page *Page) HTMLContent() template.HTML {
 }
 
 func (page *Page) BeforeCreate() (err error) {
-	if strings.TrimSpace(page.Slug) == "" {
-		page.Slug = createSlug(page.Name)
-	}
+	page.Slug = createSlug(page.Name)
 	return
 }
 
 func (page *Page) BeforeSave() (err error) {
-	if strings.TrimSpace(page.Slug) == "" {
-		page.Slug = createSlug(page.Name)
-	}
+	page.Slug = createSlug(page.Name)
 	return
 }

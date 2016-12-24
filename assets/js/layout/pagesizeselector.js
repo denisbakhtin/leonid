@@ -16,12 +16,12 @@ PageSizeSelector.controller = function(arg) {
 }
 
 PageSizeSelector.view = function(ctrl, arg) {
-  return m('#pagesizeselector', [
+  return m('#pagesizeselector',
       m('span', "Показывать на странице: "),
       [10, 50, 100, 500].map(function(size) {
         return m('a[href=#]', {class: (size == arg()) ? 'active' : '', onclick: ctrl.setpagesize.bind(this, size)}, size)
       })
-  ]);
+  );
 }
 
 module.exports = PageSizeSelector;
